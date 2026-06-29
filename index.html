@@ -6,168 +6,69 @@
 <title>خريطة القلاع</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;600;700&family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet">
-<style>
-  /* ============================================================
-     لوحة الألوان والخطوط — غيّر القيم هون وكل العناصر بتتحدث تلقائياً
-     ============================================================ */
-  :root{
-    --bg:#0a0e17;
-    --grid-line: rgba(120,150,210,0.10);
-    --panel-bg: #11182a;
-    --panel-border: rgba(255,255,255,0.08);
-    --text: #e8edf5;
-    --text-dim: #8a93a8;
-    --accent: #5b8cff;
 
-    /* الألوان الجاهزة لاختيار لون القلعة من اللوحة */
-    --c1:#27e0d6; --c2:#ff3d7f; --c3:#ffcf4d; --c4:#7c5bff; --c5:#4cd964; --c6:#ff7a3d;
-  }
+ 
+    <style>
+    /* تحديث هيكل القلعة لتصبح واقعية 3D */
+    .castle-3d-structure {
+        position: absolute;
+        width: 60px; height: 60px;
+        transform-style: preserve-3d;
+        transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
 
-  *{ box-sizing:border-box; -webkit-tap-highlight-color: transparent; }
-  html,body{ margin:0; height:100%; background:var(--bg); color:var(--text);
-    font-family:'Tajawal', sans-serif; overflow:hidden; touch-action:none; }
-  h1,h2,h3,.brand,.castle-label{ font-family:'Rajdhani','Tajawal', sans-serif; }
+    /* إضافة تأثير العمق (Depth) والحجر الطبيعي */
+    .main-tower {
+        width: 40px; height: 70px;
+        background: linear-gradient(135deg, #71717a, #3f3f46);
+        border: 2px solid #27272a;
+        box-shadow: inset -10px -10px 20px rgba(0,0,0,0.5), 5px 10px 15px rgba(0,0,0,0.3);
+        border-radius: 4px 4px 0 0;
+    }
 
-  /* ===================== الشريط العلوي ===================== */
-  #topbar{
-    position:fixed; inset:0 0 auto 0; height:54px; z-index:20;
-    display:flex; align-items:center; justify-content:space-between;
-    padding:0 14px; background:linear-gradient(180deg, rgba(10,14,23,0.95), rgba(10,14,23,0.0));
-    pointer-events:none;
-  }
-  #topbar .brand{ font-weight:700; font-size:18px; letter-spacing:1px; color:var(--text); pointer-events:auto; }
-  #topbar .brand span{ color:var(--accent); }
-  #topbar .actions{ display:flex; gap:8px; pointer-events:auto; }
-  .pill-btn{
-    background:var(--panel-bg); border:1px solid var(--panel-border); color:var(--text);
-    border-radius:999px; padding:9px 16px; font-size:13px; font-family:'Tajawal';
-    display:flex; align-items:center; gap:6px; cursor:pointer; user-select:none;
-  }
-  .pill-btn:active{ transform:scale(0.96); }
-  .pill-btn.primary{ background:var(--accent); border-color:var(--accent); color:#06101f; font-weight:700; }
+    /* إضافة "شرفات" للقلعة (Battlements) */
+    .main-tower::before {
+        content: '';
+        position: absolute;
+        top: -10px; left: -2px; width: 44px; height: 10px;
+        background: #52525b;
+        border: 1px solid #27272a;
+    }
 
-  /* ===================== منطقة الخريطة ===================== */
-  #viewport{
-    position:absolute; inset:0; overflow:hidden; cursor:grab;
-    background-image:
-      linear-gradient(var(--grid-line) 1px, transparent 1px),
-      linear-gradient(90deg, var(--grid-line) 1px, transparent 1px);
-    background-size: 46px 46px;
-  }
-  #viewport.panning{ cursor:grabbing; }
-  #world{
-    position:absolute; left:0; top:0; width:0; height:0;
-    transform-origin: 0 0;
-    will-change: transform;
-  }
+    /* سقف مخروطي مع تأثير إضاءة */
+    .castle-roof-top {
+        position: absolute;
+        top: -30px; left: -5px;
+        width: 50px; height: 30px;
+        background: radial-gradient(circle at 30% 30%, var(--accent-color), #450a0a);
+        clip-path: polygon(50% 0%, 0% 100%, 100% 100%);
+        filter: drop-shadow(0 5px 5px rgba(0,0,0,0.5));
+    }
 
-  /* ===================== القلعة ===================== */
-  .castle{
-    position:absolute; transform:translate(-50%,-100%);
-    display:flex; flex-direction:column; align-items:center;
-    cursor:pointer; user-select:none; touch-action:none;
-  }
-  .castle-label{
-    margin-bottom:6px; padding:3px 10px; border-radius:8px; font-size:12px; font-weight:600;
-    background:rgba(10,14,23,0.85); white-space:nowrap; backdrop-filter:blur(2px);
-    border:1px solid var(--c); color:var(--text);
-  }
-  .castle-art{ position:relative; width:70px; height:70px; }
+    /* إضافة ظل للقلعة على الأرض لجعلها تبدو واقفة */
+    .castle-neon-grid::after {
+        content: '';
+        position: absolute;
+        bottom: -20px; left: 10%; width: 80%; height: 10px;
+        background: rgba(0,0,0,0.4);
+        filter: blur(8px);
+        border-radius: 50%;
+    }
 
-  /* القاعدة البيضاوية المضيئة تحت القلعة */
-  .castle-base{
-    position:absolute; left:50%; bottom:4px; transform:translateX(-50%);
-    width:54px; height:18px; border-radius:50%;
-    border:2px solid var(--c); box-shadow:0 0 16px var(--c), inset 0 0 10px var(--c);
-    opacity:0.55;
-  }
+    /* تحسين حركة القلعة عند السحب */
+    .castle-node:active {
+        transform: scale(0.9) translateY(10px);
+        z-index: 100;
+    }
 
-  /* جسم القلعة (البرج) */
-  .castle-body{
-    position:absolute; left:50%; bottom:10px; transform:translateX(-50%);
-    width:26px; height:34px; background:linear-gradient(180deg,#161e30,#0c1220);
-    border:2px solid var(--c); border-radius:3px; box-shadow:0 0 10px var(--c);
-  }
+    /* إضافة توهج محيطي للقلعة يعكس طاقتها */
+    .castle-neon-grid {
+        background: rgba(10, 10, 15, 0.9);
+        border: 1px solid rgba(255,255,255,0.1);
+        box-shadow: 0 0 15px var(--accent-color);
+    }
+</style>
 
-  /* أشكال السقف المختلفة — هاد هو "شكل القلعة" */
-  .roof{ position:absolute; left:50%; transform:translateX(-50%); }
-
-  .shape-pyramid .castle-body{ height:30px; }
-  .shape-pyramid .roof{
-    bottom:38px; width:0; height:0;
-    border-left:15px solid transparent; border-right:15px solid transparent;
-    border-bottom:24px solid var(--c); filter:drop-shadow(0 0 8px var(--c));
-  }
-
-  .shape-spire .castle-body{ width:18px; height:40px; }
-  .shape-spire .roof{
-    bottom:48px; width:0; height:0;
-    border-left:9px solid transparent; border-right:9px solid transparent;
-    border-bottom:26px solid var(--c); filter:drop-shadow(0 0 8px var(--c));
-  }
-
-  .shape-fortress .castle-body{ width:36px; height:26px; }
-  .shape-fortress .roof{
-    bottom:34px; width:36px; height:10px; background:var(--c); box-shadow:0 0 8px var(--c);
-    clip-path: polygon(0 100%, 0 0, 15% 0, 15% 40%, 30% 40%, 30% 0, 45% 0, 45% 40%, 55% 40%, 55% 0, 70% 0, 70% 40%, 85% 40%, 85% 0, 100% 0, 100% 100%);
-  }
-
-  .castle.selected .castle-body{ box-shadow:0 0 0 2px #fff, 0 0 14px var(--c); }
-
-  /* زر إضافة سريع داخل الخريطة لمكان معيّن (يظهر عند الضغط المطوّل) */
-  .ghost{ opacity:0.5; }
-
-  /* ===================== لوحة تعديل القلعة ===================== */
-  #editPanel{
-    position:fixed; left:50%; bottom:0; transform:translate(-50%, 100%);
-    width:min(420px, calc(100% - 28px)); max-height:70vh; overflow:auto;
-    background:var(--panel-bg); border:1px solid var(--panel-border);
-    border-radius:16px 16px 0 0; padding:18px 18px 22px; z-index:30;
-    transition:transform 0.25s ease; box-shadow:0 -10px 30px rgba(0,0,0,0.4);
-  }
-  #editPanel.open{ transform:translate(-50%, 0); }
-  #editPanel h3{ margin:0 0 14px; font-size:17px; display:flex; justify-content:space-between; align-items:center; }
-  #editPanel .close-x{ cursor:pointer; color:var(--text-dim); font-size:20px; line-height:1; }
-  .field{ margin-bottom:14px; }
-  .field label{ display:block; font-size:12px; color:var(--text-dim); margin-bottom:6px; }
-  .field input[type=text]{
-    width:100%; background:#0c1220; border:1px solid var(--panel-border); border-radius:10px;
-    padding:10px 12px; color:var(--text); font-family:'Tajawal'; font-size:14px;
-  }
-  .swatches{ display:flex; gap:8px; flex-wrap:wrap; }
-  .swatch{
-    width:30px; height:30px; border-radius:50%; cursor:pointer; border:2px solid transparent;
-  }
-  .swatch.active{ border-color:#fff; }
-  .shapes-row{ display:flex; gap:10px; }
-  .shape-opt{
-    flex:1; padding:10px 6px; text-align:center; border-radius:10px; cursor:pointer;
-    background:#0c1220; border:1px solid var(--panel-border); font-size:12px; color:var(--text-dim);
-  }
-  .shape-opt.active{ border-color:var(--accent); color:var(--text); }
-  .edit-actions{ display:flex; gap:10px; margin-top:6px; }
-  .btn-block{
-    flex:1; text-align:center; padding:11px; border-radius:10px; cursor:pointer; font-weight:600; font-size:14px;
-  }
-  .btn-save{ background:var(--accent); color:#06101f; }
-  .btn-delete{ background:rgba(255,61,127,0.12); color:#ff3d7f; border:1px solid rgba(255,61,127,0.4); }
-
-  #overlay{
-    position:fixed; inset:0; background:rgba(0,0,0,0.45); z-index:25; opacity:0; pointer-events:none;
-    transition:opacity 0.25s ease;
-  }
-  #overlay.show{ opacity:1; pointer-events:auto; }
-
-  /* ===================== أزرار التحكم بالتكبير ===================== */
-  #zoomControls{
-    position:fixed; left:14px; bottom:18px; z-index:20;
-    display:flex; flex-direction:column; gap:8px;
-  }
-  .zoom-btn{
-    width:42px; height:42px; border-radius:50%; background:var(--panel-bg);
-    border:1px solid var(--panel-border); color:var(--text); font-size:20px;
-    display:flex; align-items:center; justify-content:center; cursor:pointer;
-  }
 </style>
 </head>
 <body>
