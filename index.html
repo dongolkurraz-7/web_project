@@ -3,67 +3,46 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>منظومة الإمبراطورية ثلاثية الأبعاد - الواقعية</title>
+    <title>منظومة الإمبراطورية ثلاثية الأبعاد - متصلة بالسحاب</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Tajawal:wght@500;700;900&display=swap');
 
         * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: 'Tajawal', sans-serif;
-            -webkit-user-select: none;
-            user-select: none;
+            margin: 0; padding: 0; box-sizing: border-box;
+            font-family: 'Tajawal', sans-serif; -webkit-user-select: none; user-select: none;
         }
 
-        body {
-            background-color: #05070f;
-            color: #fff;
-            height: 100vh;
-            overflow: hidden;
-            position: relative;
-        }
-
-        .main-wrapper {
-            position: absolute;
-            top: 0; left: 0; right: 0; bottom: 0;
-        }
+        body { background-color: #05070f; color: #fff; height: 100vh; overflow: hidden; position: relative; }
+        .main-wrapper { position: absolute; top: 0; left: 0; right: 0; bottom: 0; }
 
         /* ================= الشريط الجانبي والـ AI Chat ================= */
         .sidebar-panel {
-            position: absolute;
-            top: 0; right: 0;
-            width: 280px; height: 100%;
-            background: rgba(10, 15, 30, 0.95);
-            border-left: 2px solid #1e293b;
-            z-index: 50;
-            padding: 15px;
-            box-shadow: -5px 0 25px rgba(0,0,0,0.6);
-            backdrop-filter: blur(8px);
+            position: absolute; top: 0; right: 0; width: 280px; height: 100%;
+            background: rgba(10, 15, 30, 0.95); border-left: 2px solid #1e293b;
+            z-index: 50; padding: 15px; box-shadow: -5px 0 25px rgba(0,0,0,0.6); backdrop-filter: blur(8px);
         }
 
         .sidebar-title {
             font-size: 0.85rem; font-weight: 900; color: #ffb800;
-            padding-bottom: 8px; margin-bottom: 12px;
-            border-bottom: 1px solid #1e293b;
+            padding-bottom: 8px; margin-bottom: 12px; border-bottom: 1px solid #1e293b;
             display: flex; align-items: center; gap: 8px;
         }
 
         .treasury-row {
-            background: #111827; border: 1px solid #1e293b;
-            padding: 10px 12px; border-radius: 10px; margin-bottom: 8px;
-            display: flex; justify-content: space-between;
+            background: #111827; border: 1px solid #1e293b; padding: 10px 12px;
+            border-radius: 10px; margin-bottom: 8px; display: flex; justify-content: space-between;
         }
         .treasury-row .label { font-size: 0.75rem; color: #94a3b8; }
         .treasury-row .value { font-size: 0.9rem; font-weight: 700; color: #6fda44; }
 
         .ai-chat-box {
-            position: absolute;
-            top: 170px; bottom: 15px; left: 15px; right: 15px;
-            background: #090d16; border: 1px solid #312e81;
-            border-radius: 14px; padding: 10px;
-            display: flex; flex-direction: column;
+            position: absolute; top: 170px; bottom: 15px; left: 15px; right: 15px;
+            background: #090d16; border: 1px solid #312e81; border-radius: 14px;
+            padding: 10px; display: flex; flex-direction: column;
         }
 
         .chat-messages { flex: 1; overflow-y: auto; padding-bottom: 10px; }
@@ -76,115 +55,56 @@
             flex: 1; background: #1e293b; border: 1px solid #334155;
             border-radius: 8px; color: #fff; padding: 0 10px; font-size: 0.75rem; outline: none;
         }
-        .chat-input-area button {
-            width: 40px; background: #4338ca; border: none; border-radius: 8px; color: #fff; cursor: pointer;
-        }
+        .chat-input-area button { width: 40px; background: #4338ca; border: none; border-radius: 8px; color: #fff; cursor: pointer; }
 
         /* ================= منطقة خريطة الممالك والواقعية ثلاثية الأبعاد ================= */
         .map-viewport {
-            position: absolute;
-            top: 0; right: 280px; left: 0; height: 100%;
+            position: absolute; top: 0; right: 280px; left: 0; height: 100%;
             background-color: #0b0f19;
             background-image: linear-gradient(rgba(255,255,255,0.01) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.01) 1px, transparent 1px);
             background-size: 50px 50px;
         }
 
-        .isometric-scene {
-            width: 100%; height: 100%;
-            position: relative;
-            transform: rotateX(55deg) rotateZ(-45deg) scale(0.75);
-            transform-style: preserve-3d;
-        }
-
-        /* حاوية القلعة التفاعلية */
-        .castle-node {
-            position: absolute;
-            width: 100px; height: 100px;
-            transform-style: preserve-3d;
-            cursor: grab;
-            touch-action: none;
-        }
+        .isometric-scene { width: 100%; height: 100%; position: relative; transform: rotateX(55deg) rotateZ(-45deg) scale(0.75); transform-style: preserve-3d; }
+        .castle-node { position: absolute; width: 100px; height: 100px; transform-style: preserve-3d; cursor: grab; touch-action: none; opacity: 0.5; transition: opacity 0.3s; }
+        .castle-node.ready { opacity: 1; } /* تضيء القلعة فور سحب البيانات بنجاح */
         .castle-node:active { cursor: grabbing; }
 
-        /* قاعدة الحصن المشعة والظلال الأرضية الواقعية */
         .castle-neon-grid {
-            position: absolute;
-            width: 100%; height: 100%;
-            border: 2px solid var(--accent-color);
-            border-radius: 12px;
-            background: linear-gradient(135deg, #1e293b, #0f172a);
+            position: absolute; width: 100%; height: 100%; border: 2px solid var(--accent-color);
+            border-radius: 12px; background: linear-gradient(135deg, #1e293b, #0f172a);
             box-shadow: 0 0 25px var(--accent-color), inset 0 0 15px rgba(0,0,0,0.6);
         }
-        .castle-neon-grid::after {
-            content: ''; position: absolute; bottom: -30px; left: 10%; width: 80%; height: 15px;
-            background: rgba(0,0,0,0.6); filter: blur(10px); border-radius: 50%;
-        }
+        .castle-neon-grid::after { content: ''; position: absolute; bottom: -30px; left: 10%; width: 80%; height: 15px; background: rgba(0,0,0,0.6); filter: blur(10px); border-radius: 50%; }
 
-        /* الهيكل المعماري والبرج الحقيقي ثلاثي الأبعاد */
-        .castle-3d-structure {
-            position: absolute;
-            width: 50px; height: 50px;
-            top: 25px; left: 25px;
-            transform: rotateZ(45deg) rotateX(-55deg) translateY(-25px);
-            transform-style: preserve-3d;
-        }
-
-        /* البرج الحجري الرئيسي والظلال العميقة */
+        .castle-3d-structure { position: absolute; width: 50px; height: 50px; top: 25px; left: 25px; transform: rotateZ(45deg) rotateX(-55deg) translateY(-25px); transform-style: preserve-3d; }
         .main-tower {
-            position: absolute;
-            width: 40px; height: 75px;
-            background: linear-gradient(135deg, #64748b, #334155);
-            border: 2px solid #1e293b;
-            box-shadow: inset -12px -12px 20px rgba(0,0,0,0.6), 5px 10px 20px rgba(0,0,0,0.4);
-            border-radius: 4px;
+            position: absolute; width: 40px; height: 75px; background: linear-gradient(135deg, #64748b, #334155);
+            border: 2px solid #1e293b; box-shadow: inset -12px -12px 20px rgba(0,0,0,0.6), 5px 10px 20px rgba(0,0,0,0.4); border-radius: 4px;
         }
-
-        /* شرفات وأسوار القلعة الحربية من الأعلى */
         .main-tower::before {
-            content: '';
-            position: absolute;
-            top: -8px; left: -2px; width: 40px; height: 8px;
-            background: #475569;
-            border: 1.5px solid #1e293b;
-            background-image: linear-gradient(90deg, transparent 25%, #1e293b 25%, #1e293b 50%, transparent 50%, transparent 75%, #1e293b 75%);
-            background-size: 15px 100%;
+            content: ''; position: absolute; top: -8px; left: -2px; width: 40px; height: 8px; background: #475569; border: 1.5px solid #1e293b;
+            background-image: linear-gradient(90deg, transparent 25%, #1e293b 25%, #1e293b 50%, transparent 50%, transparent 75%, #1e293b 75%); background-size: 15px 100%;
         }
 
-        /* السقف المخروطي الواقعي مع انعكاس الإضاءة */
         .castle-roof-top {
-            position: absolute;
-            top: -32px; left: -4px;
-            width: 44px; height: 32px;
-            background: radial-gradient(circle at 30% 30%, var(--accent-color), #3b0712);
-            clip-path: polygon(50% 0%, 0% 100%, 100% 100%);
-            filter: drop-shadow(0 4px 6px rgba(0,0,0,0.6));
+            position: absolute; top: -32px; left: -4px; width: 44px; height: 32px;
+            background: radial-gradient(circle at 30% 30%, var(--accent-color), #3b0712); clip-path: polygon(50% 0%, 0% 100%, 100% 100%); filter: drop-shadow(0 4px 6px rgba(0,0,0,0.6));
         }
-
-        /* أسوار حماية جانبية مدببة */
         .fortress-wall-left {
-            position: absolute;
-            left: -18px; bottom: 0;
-            width: 18px; height: 35px;
-            background: linear-gradient(to top, #334155, #475569);
-            border: 1.5px solid #1e293b;
-            box-shadow: inset -3px -3px 5px rgba(0,0,0,0.5);
-            clip-path: polygon(0% 100%, 0% 20%, 50% 0%, 100% 20%, 100% 100%);
+            position: absolute; left: -18px; bottom: 0; width: 18px; height: 35px; background: linear-gradient(to top, #334155, #475569);
+            border: 1.5px solid #1e293b; box-shadow: inset -3px -3px 5px rgba(0,0,0,0.5); clip-path: polygon(0% 100%, 0% 20%, 50% 0%, 100% 20%, 100% 100%);
         }
 
-        /* لافتات المنصات المضيئة */
         .platform-badge {
-            position: absolute;
-            top: -95px; left: 50%;
-            transform: translateX(-50%) rotateZ(45deg) rotateX(-55deg);
-            background: #090d16; border: 2px solid var(--accent-color);
-            padding: 5px 12px; border-radius: 20px;
-            box-shadow: 0 0 15px var(--accent-color);
-            white-space: nowrap; display: flex; align-items: center; gap: 6px;
+            position: absolute; top: -95px; left: 50%; transform: translateX(-50%) rotateZ(45deg) rotateX(-55deg);
+            background: #090d16; border: 2px solid var(--accent-color); padding: 5px 12px; border-radius: 20px;
+            box-shadow: 0 0 15px var(--accent-color); white-space: nowrap; display: flex; align-items: center; gap: 6px;
         }
         .platform-badge i { font-size: 1rem; color: #fff; }
         .platform-badge span { font-size: 0.75rem; font-weight: 700; color: #fff; }
 
-        /* إحداثيات وهويات الممالك السبع */
+        /* المواقع الافتراضية المبدئية قبل التحميل السحابي */
         .c-youtube   { --accent-color: #ef4444; top: 8%; left: 15%; }
         .c-tiktok    { --accent-color: #06b6d4; top: 8%; left: 60%; }
         .c-insta     { --accent-color: #ec4899; top: 42%; left: 12%; }
@@ -193,46 +113,30 @@
         .c-linkedin  { --accent-color: #0284c7; top: 74%; left: 18%; }
         .c-upwork    { --accent-color: #22c55e; top: 74%; left: 62%; }
 
-        .floating-header {
-            position: absolute; top: 15px; left: 20px;
-            background: rgba(10, 15, 30, 0.85); border: 1px solid #1e293b;
-            padding: 10px 18px; border-radius: 10px; z-index: 40;
-        }
+        .floating-header { position: absolute; top: 15px; left: 20px; background: rgba(10, 15, 30, 0.85); border: 1px solid #1e293b; padding: 10px 18px; border-radius: 10px; z-index: 40; }
         .floating-header h1 { font-size: 0.95rem; font-weight: 900; color: #ffb800; }
-
         .floating-footer { position: absolute; bottom: 15px; left: 20px; z-index: 40; }
-        .btn-withdraw {
-            background: linear-gradient(180deg, #dc2626, #991b1b);
-            border: 1px solid rgba(255,255,255,0.3); color: white; padding: 12px 24px;
-            font-weight: 700; font-size: 0.8rem; border-radius: 30px;
-            cursor: pointer; box-shadow: 0 0 15px rgba(220,38,38,0.4); transition: transform 0.2s;
-        }
-        .btn-withdraw:active { transform: scale(0.95); }
+        .btn-withdraw { background: linear-gradient(180deg, #dc2626, #991b1b); border: 1px solid rgba(255,255,255,0.3); color: white; padding: 12px 24px; font-weight: 700; font-size: 0.8rem; border-radius: 30px; cursor: pointer; box-shadow: 0 0 15px rgba(220,38,38,0.4); }
 
-        /* الاستجابة لشاشات الجوال الضيقة والـ Preview الخاص بك */
         @media (max-width: 768px) {
             .sidebar-panel { width: 100%; height: 40%; top: auto; bottom: 0; border-left: none; border-top: 2px solid #1e293b; }
             .map-viewport { right: 0; height: 60%; }
             .isometric-scene { transform: rotateX(55deg) rotateZ(-45deg) scale(0.55); }
-            .floating-header { padding: 6px 12px; }
-            .floating-header h1 { font-size: 0.8rem; }
         }
     </style>
 </head>
 <body>
 
     <div class="main-wrapper">
-        
         <div class="sidebar-panel">
             <div class="sidebar-title"><i class="fas fa-vault"></i> إحصائيات الخزينة والعملة</div>
             <div class="treasury-row"><span class="label">الرصيد المتاح</span><span class="value">$5,680.00</span></div>
             <div class="treasury-row"><span class="label">العوائد المعلقة</span><span class="value" style="color:#ffb800;">$1,420.00</span></div>
             
             <div class="sidebar-title" style="margin-top: 10px;"><i class="fas fa-robot"></i> مستشار الذكاء الاصطناعي</div>
-            
             <div class="ai-chat-box">
                 <div class="chat-messages" id="chatContainer">
-                    <div class="msg ai">🤖 أهلاً بك في الإمبراطورية الرقمية المحصنة. قلاع الممالك جاهزة للترتيب والتحريك بالإصبع الآن! كيف يمكنني مساعدتك اليوم؟</div>
+                    <div class="msg ai">🤖 النظام متصل بقاعدة البيانات بنجاح! حرك القلاع لتجربة الحفظ التلقائي الحي السحابي.</div>
                 </div>
                 <div class="chat-input-area">
                     <input type="text" id="userInput" placeholder="اكتب سؤالك هنا...">
@@ -242,147 +146,155 @@
         </div>
 
         <div class="map-viewport">
-            <div class="floating-header">
-                <h1>منظومة الإحصائيات الشاملة والحصانة المالية</h1>
-            </div>
-            
-            <div class="floating-footer">
-                <button class="btn-withdraw"><i class="fas fa-shield-halved"></i> طلب سحب الأموال الآمن</button>
-            </div>
+            <div class="floating-header"><h1>منظومة الإمبراطورية السحابية ثلاثية الأبعاد</h1></div>
+            <div class="floating-footer"><button class="btn-withdraw"><i class="fas fa-shield-halved"></i> طلب سحب آمن</button></div>
 
             <div class="isometric-scene">
-                <div class="castle-node c-youtube">
+                <div class="castle-node c-youtube" data-id="youtube">
                     <div class="platform-badge"><i class="fab fa-youtube" style="color:#ef4444;"></i><span>يوتيوب</span></div>
                     <div class="castle-neon-grid"></div>
                     <div class="castle-3d-structure"><div class="main-tower"><div class="castle-roof-top"></div></div><div class="fortress-wall-left"></div></div>
                 </div>
-                <div class="castle-node c-tiktok">
+                <div class="castle-node c-tiktok" data-id="tiktok">
                     <div class="platform-badge"><i class="fab fa-tiktok" style="color:#06b6d4;"></i><span>تيك توك</span></div>
                     <div class="castle-neon-grid"></div>
                     <div class="castle-3d-structure"><div class="main-tower"><div class="castle-roof-top"></div></div><div class="fortress-wall-left"></div></div>
                 </div>
-                <div class="castle-node c-insta">
+                <div class="castle-node c-insta" data-id="insta">
                     <div class="platform-badge"><i class="fab fa-instagram" style="color:#ec4899;"></i><span>إنستغرام</span></div>
                     <div class="castle-neon-grid"></div>
                     <div class="castle-3d-structure"><div class="main-tower"><div class="castle-roof-top"></div></div><div class="fortress-wall-left"></div></div>
                 </div>
-                <div class="castle-node c-snap">
+                <div class="castle-node c-snap" data-id="snap">
                     <div class="platform-badge"><i class="fab fa-snapchat" style="color:#eab308;"></i><span>سناب شات</span></div>
                     <div class="castle-neon-grid"></div>
                     <div class="castle-3d-structure"><div class="main-tower"><div class="castle-roof-top"></div></div><div class="fortress-wall-left"></div></div>
                 </div>
-                <div class="castle-node c-facebook">
+                <div class="castle-node c-facebook" data-id="facebook">
                     <div class="platform-badge"><i class="fab fa-facebook-f" style="color:#3b82f6;"></i><span>فيسبوك</span></div>
                     <div class="castle-neon-grid"></div>
                     <div class="castle-3d-structure"><div class="main-tower"><div class="castle-roof-top"></div></div><div class="fortress-wall-left"></div></div>
                 </div>
-                <div class="castle-node c-linkedin">
+                <div class="castle-node c-linkedin" data-id="linkedin">
                     <div class="platform-badge"><i class="fab fa-linkedin-in" style="color:#0284c7;"></i><span>لينكد إن</span></div>
                     <div class="castle-neon-grid"></div>
                     <div class="castle-3d-structure"><div class="main-tower"><div class="castle-roof-top"></div></div><div class="fortress-wall-left"></div></div>
                 </div>
-                <div class="castle-node c-upwork">
+                <div class="castle-node c-upwork" data-id="upwork">
                     <div class="platform-badge"><i class="fas fa-briefcase" style="color:#22c55e;"></i><span>أب ورك</span></div>
                     <div class="castle-neon-grid"></div>
                     <div class="castle-3d-structure"><div class="main-tower"><div class="castle-roof-top"></div></div><div class="fortress-wall-left"></div></div>
                 </div>
             </div>
         </div>
-
     </div>
 
     <script>
-        function sendMessage() {
-            const input = document.getElementById('userInput');
-            const query = input.value.trim();
-            if (!query) return;
+        // ================= ربط الهوية السحابية بـ Supabase =================
+        const SUPABASE_URL = "https://pujxqcfzljzxiijgfbtw.supabase.co";
+        const SUPABASE_ANON_KEY = "EyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB1anhxY2Z6bGp6eGlpamdmYnR3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODI3NDI2OTksImV4cCI6MjA5ODMxODY5OX0.XPrxnm6PDfBFDDXmKInHVqwvUZ6Aa2vGxWW9peu4jKw"; 
 
-            const chatContainer = document.getElementById('chatContainer');
+        const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-            const userMsg = document.createElement('div');
-            userMsg.className = 'msg user';
-            userMsg.innerText = query;
-            chatContainer.appendChild(userMsg);
+        // تحميل مواقع القلاع المحفوظة فور فتح التطبيق
+        async function loadCastlesFromCloud() {
+            try {
+                let { data: castlesData, error } = await _supabase.from('castles').select('*');
+                if (error) throw error;
 
-            input.value = '';
-            chatContainer.scrollTop = chatContainer.scrollHeight;
-
-            setTimeout(() => {
-                const aiMsg = document.createElement('div');
-                aiMsg.className = 'msg ai';
-                
-                let responseText = "🤖 مستشارك الذكي: سؤال ممتاز! ركز على تقديم قيمة وتحليل المنصات جيداً لتحقيق القوة الرقمية المحصنة.";
-                
-                if (query.includes('اب ورك') || query.includes('upwork') || query.includes('شغل')) {
-                    responseText = "💼 مستشار أب ورك: للبدء بقوة، ابنِ معرض أعمال (Portfolio) مميز حتى لو كان لمشاريع وهمية أو تجريبية، واكتب عروضاً مخصصة (Proposals) تشرح فيها كيف ستحل مشكلة العميل مباشرة لتكسب ثقته وتضمن أول تقييم 5 نجوم!";
+                if (castlesData && castlesData.length > 0) {
+                    castlesData.forEach(item => {
+                        const element = document.querySelector(`[data-id="${item.castle_id}"]`);
+                        if (element) {
+                            element.style.left = item.left_position + '%';
+                            element.style.top = item.top_position + '%';
+                        }
+                    });
                 }
-                
-                aiMsg.innerText = responseText;
-                chatContainer.appendChild(aiMsg);
-                chatContainer.scrollTop = chatContainer.scrollHeight;
-            }, 800);
+            } catch (err) {
+                console.log("خطأ في جلب البيانات، سيتم عرض المواقع الافتراضية:", err);
+            } finally {
+                // تضيء القلاع وتصبح جاهزة تماماً فور انتهاء التحميل
+                document.querySelectorAll('.castle-node').forEach(c => c.classList.add('ready'));
+            }
         }
 
-        document.getElementById('userInput').addEventListener('keypress', function (e) {
-            if (e.key === 'Enter') sendMessage();
-        });
+        // حفظ الموقع الجديد للقلعة في قاعدة البيانات فور إفلاتها
+        async function saveCastleToCloud(castleId, topPos, leftPos) {
+            try {
+                let { data } = await _supabase.from('castles').select('castle_id').eq('castle_id', castleId);
+                
+                let error;
+                if (data && data.length > 0) {
+                    ({ error } = await _supabase.from('castles').update({ top_position: topPos, left_position: leftPos }).eq('castle_id', castleId));
+                } else {
+                    ({ error } = await _supabase.from('castles').insert([{ castle_id: castleId, top_position: topPos, left_position: leftPos }]);
+                }
+                if (error) throw error;
+                console.log(`تم حفظ موقع مملكة ${castleId} في السحاب!`);
+            } catch (err) {
+                console.error("فشل الحفظ في السحاب:", err);
+            }
+        }
 
-        // تفعيل السحب والإفلات الشامل للموبايل والكمبيوتر
+        window.addEventListener('DOMContentLoaded', loadCastlesFromCloud);
+
+        // ================= سكريبت السحب والإفلات التفاعلي الشامل =================
         const castles = document.querySelectorAll('.castle-node');
-
         castles.forEach(castle => {
-            let isDragging = false;
-            let startX, startY;
-            let currentLeft, currentTop;
+            let isDragging = false; let startX, startY, currentLeft, currentTop;
 
             castle.addEventListener('mousedown', dragStart);
             window.addEventListener('mousemove', dragMove);
             window.addEventListener('mouseup', dragEnd);
-
             castle.addEventListener('touchstart', dragStart, { passive: false });
             window.addEventListener('touchmove', dragMove, { passive: false });
             window.addEventListener('touchend', dragEnd);
 
             function dragStart(e) {
-                if (e.type === 'touchstart') {
-                    startX = e.touches[0].clientX;
-                    startY = e.touches[0].clientY;
-                } else {
-                    e.preventDefault();
-                    startX = e.clientX;
-                    startY = e.clientY;
-                }
-
+                if (e.type === 'touchstart') { startX = e.touches[0].clientX; startY = e.touches[0].clientY; }
+                else { e.preventDefault(); startX = e.clientX; startY = e.clientY; }
                 isDragging = true;
-
-                const rect = castle.getBoundingClientRect();
-                const parentRect = castle.parentElement.getBoundingClientRect();
-                
+                const rect = castle.getBoundingClientRect(); const parentRect = castle.parentElement.getBoundingClientRect();
                 currentLeft = ((rect.left - parentRect.left) / parentRect.width) * 100;
                 currentTop = ((rect.top - parentRect.top) / parentRect.height) * 100;
             }
 
             function dragMove(e) {
                 if (!isDragging) return;
-                
-                if (e.type === 'touchmove') {
-                    e.preventDefault(); 
-                }
-
+                if (e.type === 'touchmove') e.preventDefault();
                 let clientX = e.type === 'touchmove' ? e.touches[0].clientX : e.clientX;
                 let clientY = e.type === 'touchmove' ? e.touches[0].clientY : e.clientY;
-
                 const deltaX = ((clientX - startX) / window.innerWidth) * 100;
                 const deltaY = ((clientY - startY) / window.innerHeight) * 100;
-
                 castle.style.left = `${currentLeft + deltaX}%`;
                 castle.style.top = `${currentTop + deltaY}%`;
             }
 
             function dragEnd() {
+                if (!isDragging) return;
                 isDragging = false;
+                const finalLeft = parseFloat(castle.style.left);
+                const finalTop = parseFloat(castle.style.top);
+                const castleId = castle.getAttribute('data-id');
+                
+                // حفظ فوري في السحاب عند الإفلات
+                saveCastleToCloud(castleId, finalTop, finalLeft);
             }
         });
+
+        // نظام محادثة مبدئي
+        function sendMessage() {
+            const input = document.getElementById('userInput'); const query = input.value.trim(); if (!query) return;
+            const chatContainer = document.getElementById('chatContainer');
+            const userMsg = document.createElement('div'); userMsg.className = 'msg user'; userMsg.innerText = query; chatContainer.appendChild(userMsg);
+            input.value = ''; chatContainer.scrollTop = chatContainer.scrollHeight;
+            setTimeout(() => {
+                const aiMsg = document.createElement('div'); aiMsg.className = 'msg ai';
+                aiMsg.innerText = "🤖 مستشارك السحابي: تم استلام أمرك وجارٍ معالجته لتأمين الممالك السبع عبر الخوادم الحية.";
+                chatContainer.appendChild(aiMsg); chatContainer.scrollTop = chatContainer.scrollHeight;
+            }, 800);
+        }
     </script>
 </body>
 </html>
