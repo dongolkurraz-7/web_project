@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>إمبراطورية M-AI - اللوحة التكتيكية</title>
+    <title>إمبراطورية M-AI - منظومة الإنتاج الحي</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
@@ -105,7 +105,18 @@
         .sidebar-title { font-size: 0.8rem; font-weight: 900; color: #ffb800; display: flex; align-items: center; gap: 6px; }
         
         .stats-grid { display: flex; gap: 6px; width: 100%; }
-        .treasury-row { flex: 1; background: #0d1222; border: 1px solid #1e293b; padding: 6px 10px; border-radius: 8px; display: flex; justify-content: space-between; align-items: center; font-size: 0.7rem; font-weight: bold; }
+        .treasury-row { flex: 1; background: #0d1222; border: 1px solid #1e293b; padding: 6px 10px; border-radius: 8px; display: flex; justify-content: space-between; align-items: center; font-size: 0.7rem; font-weight: bold; position: relative; }
+
+        /* تأثيرات الأرقام العائمة للأرباح التلقائية */
+        @keyframes floatUp {
+            0% { opacity: 0; transform: translateY(0) scale(0.8); }
+            20% { opacity: 1; transform: translateY(-10px) scale(1.1); }
+            100% { opacity: 0; transform: translateY(-25px) scale(0.9); }
+        }
+        .floating-profit {
+            position: absolute; left: 20px; top: -10px; color: #4ade80; font-weight: 900;
+            font-size: 0.75rem; animation: floatUp 0.8s ease-out forwards; pointer-events: none;
+        }
 
         /* القسم المزدوج: الشات + لوحة التحكم الفردية بالممالك */
         .panel-dynamic-content {
@@ -237,18 +248,20 @@
 
     <div class="bottom-panel">
         <div class="panel-header-row">
-            <div class="sidebar-title"><i class="fas fa-cubes"></i> غرفة العمليات والتحكم</div>
+            <div class="sidebar-title"><i class="fas fa-cubes"></i> غرفة العمليات والتحكم للإنتاج</div>
         </div>
 
         <div class="stats-grid">
-            <div class="treasury-row"><span>الرصيد المتاح:</span><span style="color:#4ade80;" id="availableBalance">5680.00</span></div>
-            <div class="treasury-row"><span>العوائد المعلقة:</span><span style="color:#fbbf24;">$1,420.00</span></div>
+            <div class="treasury-row" id="balanceRow">
+                <span>الرصيد المتاح:</span><span style="color:#4ade80; font-family: monospace;" id="availableBalance">$5680.00</span>
+            </div>
+            <div class="treasury-row"><span>معدل الإنتاج الكلي:</span><span style="color:#6366f1;" id="totalProductionRate">+$0.15/ثانية</span></div>
         </div>
         
         <div class="panel-dynamic-content">
             <div class="ai-chat-box">
                 <div class="chat-messages" id="chatContainer">
-                    <div class="msg ai">👑 أهلاً بك يا قائد! انقر فوق أي مملكة في الساحة لفتح لوحة تطويرها المباشرة ومراقبة أرباحها الفردية.</div>
+                    <div class="msg ai">👑 منظومة المحاكاة حية! قلاعك الآن تولّد رصيداً سحابياً تلقائياً مستمراً كل ثانية. طوّر القلاع لزيادة سرعة التوليد!</div>
                 </div>
                 <div class="chat-input-area">
                     <input type="text" id="userInput" placeholder="اكتب رسالتك للمنظومة...">
@@ -263,7 +276,7 @@
                     <span class="monitor-level" id="monitorLevelDisplay">LV.1</span>
                 </div>
                 <div class="monitor-stats">
-                    <div class="monitor-stat-row"><span>معدل الإنتاج:</span><span class="val" id="monitorRate">+$12.50/ثانية</span></div>
+                    <div class="monitor-stat-row"><span>معدل الإنتاج الفردي:</span><span class="val" id="monitorRate">+$0.05/ثانية</span></div>
                     <div class="monitor-stat-row"><span>تقييم المملكة:</span><span class="val" style="color:#fbbf24;"><i class="fas fa-star"></i> 4.8</span></div>
                     <div class="monitor-stat-row"><span>عقود نشطة:</span><span class="val">14 مهمة</span></div>
                 </div>
@@ -300,20 +313,19 @@
     </div>
 
     <script>
-        // إعدادات ومزامنة Supabase
         const SUPABASE_URL = "https://pujxqcfzljzxiijgfbtw.supabase.co";
         const SUPABASE_ANON_KEY = "EyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB1anhxY2Z6bGp6eGlpamdmYnR3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODI3NDI2OTksImV4cCI6MjA5ODMxODY5OX0.XPrxnm6PDfBFDDXmKInHVqwvUZ6Aa2vGxWW9peu4jKw";
         const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-        // قاعدة بيانات الحالة المحلية للممالك السبع لتعمل فورياً وتفاعلياً
+        // معدلات إنتاج منطقية وموزونة لكل ثانية لكل قلعة لمنع قفز الأرقام بجنون
         const castlesData = {
-            youtube: { name: 'يوتيوب', icon: 'fab fa-youtube', color: '#ef4444', level: 1, rate: 12.50, contracts: 14, score: 4.8 },
-            tiktok: { name: 'تيك توك', icon: 'fab fa-tiktok', color: '#06b6d4', level: 1, rate: 18.20, contracts: 22, score: 4.9 },
-            insta: { name: 'انستغرام', icon: 'fab fa-instagram', color: '#ec4899', level: 1, rate: 9.40, contracts: 8, score: 4.7 },
-            snap: { name: 'سناب شات', icon: 'fab fa-snapchat', color: '#eab308', level: 1, rate: 15.00, contracts: 11, score: 4.6 },
-            facebook: { name: 'فيسبوك', icon: 'fab fa-facebook-f', color: '#3b82f6', level: 1, rate: 7.10, contracts: 19, score: 4.4 },
-            linkedin: { name: 'لينكد إن', icon: 'fab fa-linkedin-in', color: '#0284c7', level: 1, rate: 25.00, contracts: 5, score: 4.9 },
-            upwork: { name: 'أب ورك', icon: 'fas fa-briefcase', color: '#22c55e', level: 1, rate: 35.50, contracts: 3, score: 5.0 }
+            youtube: { name: 'يوتيوب', icon: 'fab fa-youtube', color: '#ef4444', level: 1, rate: 0.05, contracts: 14, score: 4.8 },
+            tiktok: { name: 'تيك توك', icon: 'fab fa-tiktok', color: '#06b6d4', level: 1, rate: 0.08, contracts: 22, score: 4.9 },
+            insta: { name: 'انستغرام', icon: 'fab fa-instagram', color: '#ec4899', level: 1, rate: 0.03, contracts: 8, score: 4.7 },
+            snap: { name: 'سناب شات', icon: 'fab fa-snapchat', color: '#eab308', level: 1, rate: 0.06, contracts: 11, score: 4.6 },
+            facebook: { name: 'فيسبوك', icon: 'fab fa-facebook-f', color: '#3b82f6', level: 1, rate: 0.02, contracts: 19, score: 4.4 },
+            linkedin: { name: 'لينكد إن', icon: 'fab fa-linkedin-in', color: '#0284c7', level: 1, rate: 0.12, contracts: 5, score: 4.9 },
+            upwork: { name: 'أب ورك', icon: 'fas fa-briefcase', color: '#22c55e', level: 1, rate: 0.15, contracts: 3, score: 5.0 }
         };
 
         let activeCastleId = 'youtube';
@@ -325,10 +337,7 @@
                 if (data) {
                     data.forEach(item => {
                         const el = document.querySelector(`[data-id="${item.castle_id}"]`);
-                        if (el) {
-                            el.style.left = item.left_position + '%';
-                            el.style.top = item.top_position + '%';
-                        }
+                        if (el) { el.style.left = item.left_position + '%'; el.style.top = item.top_position + '%'; }
                     });
                 }
             } catch(e) { console.log(e); }
@@ -336,12 +345,10 @@
         window.addEventListener('DOMContentLoaded', loadPositions);
 
         async function savePosition(id, top, left) {
-            try {
-                await _supabase.from('castles').upsert({ castle_id: id, top_position: top, left_position: left });
-            } catch(e) { console.log(e); }
+            try { await _supabase.from('castles').upsert({ castle_id: id, top_position: top, left_position: left }); } catch(e) { console.log(e); }
         }
 
-        // ================= محرك الـ VFX Particles للخلفية السحابية =================
+        // ================= محرك الـ VFX Particles للخلفية =================
         const canvas = document.getElementById('vfx-canvas'); const ctx = canvas.getContext('2d'); let particles = [];
         function resizeCanvas() { canvas.width = window.innerWidth; canvas.height = window.innerHeight; }
         window.addEventListener('resize', resizeCanvas); resizeCanvas();
@@ -354,21 +361,48 @@
         function animateVFX() { ctx.clearRect(0, 0, canvas.width, canvas.height); particles.forEach(p => { p.update(); p.draw(); }); requestAnimationFrame(animateVFX); }
         initVFX(); animateVFX();
 
-        // ================= تحديث واجهة لوحة معلومات القلعة النشطة =================
+        // ================= محرك الإنتاج التلقائي والعداد الحي =================
+        function calculateTotalRate() {
+            let total = 0;
+            for (let key in castlesData) { total += castlesData[key].rate; }
+            return total;
+        }
+
+        function runIdleProduction() {
+            setInterval(() => {
+                const totalRate = calculateTotalRate();
+                userBalance += totalRate;
+                
+                // تحديث الخزينة
+                document.getElementById('availableBalance').innerText = `$${userBalance.toFixed(2)}`;
+                document.getElementById('totalProductionRate').innerText = `+$${totalRate.toFixed(2)}/ثانية`;
+
+                // إنتاج رقم أخضر عائم وتأثير بفتس فوق الخزينة لإعطاء طابع حيوي
+                showFloatingProfit(totalRate);
+            }, 1000);
+        }
+        
+        function showFloatingProfit(amount) {
+            const row = document.getElementById('balanceRow');
+            const floatEl = document.createElement('span');
+            floatEl.className = 'floating-profit';
+            floatEl.innerText = `+$${amount.toFixed(2)}`;
+            row.appendChild(floatEl);
+            setTimeout(() => floatEl.remove(), 800);
+        }
+
+        // تشغيل محاكاة الإنتاج الحي تلقائياً عند تحميل الصفحة
+        runIdleProduction();
+
         function updateMonitorUI(id) {
-            activeCastleId = id;
-            const data = castlesData[id];
-            
-            const iconEl = document.getElementById('monitorIcon');
-            iconEl.className = data.icon;
-            iconEl.style.color = data.color;
-            
+            activeCastleId = id; const data = castlesData[id];
+            const iconEl = document.getElementById('monitorIcon'); iconEl.className = data.icon; iconEl.style.color = data.color;
             document.getElementById('monitorName').innerText = data.name;
             document.getElementById('monitorLevelDisplay').innerText = `LV.${data.level}`;
             document.getElementById('monitorRate').innerText = `+$${data.rate.toFixed(2)}/ثانية`;
         }
 
-        // ================= سكريبت التحكم الحركي والتفاعلي الفوري =================
+        // ================= سكريبت الجر والنقر للممالك =================
         const nodes = document.querySelectorAll('.castle-node');
         nodes.forEach(node => {
             let active = false; let hasMoved = false;
@@ -376,97 +410,67 @@
 
             const start = (e) => {
                 hasMoved = false;
-                const parentRect = node.parentElement.getBoundingClientRect();
-                const nodeRect = node.getBoundingClientRect();
+                const parentRect = node.parentElement.getBoundingClientRect(); const nodeRect = node.getBoundingClientRect();
                 xOffset = ((nodeRect.left - parentRect.left) / parentRect.width) * 100;
                 yOffset = ((nodeRect.top - parentRect.top) / parentRect.height) * 100;
-
                 const clientX = e.type.includes('touch') ? e.touches[0].clientX : e.clientX;
                 const clientY = e.type.includes('touch') ? e.touches[0].clientY : e.clientY;
                 initialX = clientX; initialY = clientY;
-                
                 if (e.target.closest('.castle-node')) { active = true; node.classList.add('dragging'); }
             };
 
             const move = (e) => {
-                if (!active) return;
-                hasMoved = true;
-                e.preventDefault();
+                if (!active) return; hasMoved = true; e.preventDefault();
                 const clientX = e.type.includes('touch') ? e.touches[0].clientX : e.clientX;
                 const clientY = e.type.includes('touch') ? e.touches[0].clientY : e.clientY;
                 currentX = clientX - initialX; currentY = clientY - initialY;
-
                 const parentRect = node.parentElement.getBoundingClientRect();
-                let newLeft = xOffset + (currentX / parentRect.width) * 130; 
-                let newTop = yOffset + (currentY / parentRect.height) * 130;
-
-                if(newLeft < 1) newLeft = 1; if(newLeft > 88) newLeft = 88;
-                if(newTop < 1) newTop = 1; if(newTop > 88) newTop = 88;
-
+                let newLeft = xOffset + (currentX / parentRect.width) * 130; let newTop = yOffset + (currentY / parentRect.height) * 130;
+                if(newLeft < 1) newLeft = 1; if(newLeft > 88) newLeft = 88; if(newTop < 1) newTop = 1; if(newTop > 88) newTop = 88;
                 node.style.left = newLeft + '%'; node.style.top = newTop + '%';
             };
 
             const end = () => {
-                if (!active) return;
-                active = false; node.classList.remove('dragging');
-                
-                // إذا نقر فقط بدون سحب، نفتح لوحة المعلومات فوراً
-                if (!hasMoved) {
-                    const id = node.getAttribute('data-id');
-                    updateMonitorUI(id);
-                } else {
-                    savePosition(node.getAttribute('data-id'), parseFloat(node.style.top), parseFloat(node.style.left));
-                }
+                if (!active) return; active = false; node.classList.remove('dragging');
+                if (!hasMoved) { updateMonitorUI(node.getAttribute('data-id')); } 
+                else { savePosition(node.getAttribute('data-id'), parseFloat(node.style.top), parseFloat(node.style.left)); }
             };
 
-            node.addEventListener('touchstart', start, {passive: false});
-            window.addEventListener('touchmove', move, {passive: false});
-            window.addEventListener('touchend', end);
-            node.addEventListener('mousedown', start);
-            window.addEventListener('mousemove', move);
-            window.addEventListener('mouseup', end);
+            node.addEventListener('touchstart', start, {passive: false}); window.addEventListener('touchmove', move, {passive: false}); window.addEventListener('touchend', end);
+            node.addEventListener('mousedown', start); window.addEventListener('mousemove', move); window.addEventListener('mouseup', end);
         });
 
-        // ================= نظام ترقية وتطوير القلعة والخصم من الرصيد =================
+        // ================= ترقية وتطوير القلعة =================
         document.getElementById('upgradeCastleBtn').addEventListener('click', () => {
-            if (userBalance < 150) {
-                alert("الرصيد في الخزينة غير كافٍ لإتمام التطوير السحابي يا قائد!");
-                return;
-            }
-            
-            // خصم الرصيد وتحديث واجهة الخزينة
+            if (userBalance < 150) { alert("الرصيد غير كافٍ للتطوير السحابي يا قائد!"); return; }
             userBalance -= 150;
             document.getElementById('availableBalance').innerText = `$${userBalance.toFixed(2)}`;
             
-            // ترقية مستويات ومعدلات إنتاج القلعة النشطة
             const data = castlesData[activeCastleId];
             data.level += 1;
-            data.rate += (data.rate * 0.25); // زيادة معدل الإنتاج بنسبة 25%
+            data.rate += (data.rate * 0.40); // الترقية تعطي قفزة 40% في سرعة الإنتاج التلقائي
             
             updateMonitorUI(activeCastleId);
             
-            // إرسال إشعار في الشات بنجاح الترقية
+            // تحديث معدل الإنتاج الإجمالي فوراً
+            document.getElementById('totalProductionRate').innerText = `+$${calculateTotalRate().toFixed(2)}/ثانية`;
+
             const container = document.getElementById('chatContainer');
-            const noteBox = document.createElement('div');
-            noteBox.className = 'msg ai';
-            noteBox.style.borderRight = '3px solid #22c55e';
-            noteBox.innerText = `⚡ تم بنجاح ترقية مملكة "${data.name}" إلى المستوى ${data.level}! معدل الإيرادات ارتفع تلقائياً.`;
-            container.appendChild(noteBox);
-            container.scrollTop = container.scrollHeight;
+            const noteBox = document.createElement('div'); noteBox.className = 'msg ai'; noteBox.style.borderRight = '3px solid #22c55e';
+            noteBox.innerText = `⚡ تم ترقية مملكة "${data.name}" لـ LV.${data.level}. سرعة العداد التلقائي الإجمالي ارتفعت بالكامل الآن!`;
+            container.appendChild(noteBox); container.scrollTop = container.scrollHeight;
         });
 
-        // ================= تحكم الـ Modal وشاشة النجاح للسحب =================
+        // تحكم المودال والشات
         const modal = document.getElementById('withdrawModal'); const successScreen = document.getElementById('successScreen');
         document.getElementById('openWithdrawModal').addEventListener('click', () => { modal.style.display = 'flex'; successScreen.style.display = 'none'; });
         document.getElementById('closeWithdrawModal').addEventListener('click', () => modal.style.display = 'none');
         document.getElementById('confirmWithdraw').addEventListener('click', () => {
-            const address = document.getElementById('walletAddress').value.trim();
-            if(!address) { alert('الرجاء إدخال عنوان المحفظة أولاً يا قائد!'); return; }
+            const address = document.getElementById('walletAddress').value.trim(); if(!address) { alert('الرجاء إدخال عنوان المحفظة!'); return; }
             successScreen.style.display = 'flex';
         });
         document.getElementById('closeSuccessBtn').addEventListener('click', () => { modal.style.display = 'none'; successScreen.style.display = 'none'; document.getElementById('walletAddress').value = ''; });
 
-        // الشات التفاعلي السلس
         document.getElementById('sendBtn').addEventListener('click', () => {
             const input = document.getElementById('userInput'); const query = input.value.trim(); if(!query) return;
             const container = document.getElementById('chatContainer');
