@@ -8,7 +8,7 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Tajawal:wght@500;700;900&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Tajawal:wght=500;700;900&display=swap');
 
         * {
             margin: 0; padding: 0; box-sizing: border-box;
@@ -27,7 +27,7 @@
 
         .isometric-scene { width: 100%; height: 100%; position: relative; transform: rotateX(55deg) rotateZ(-45deg) scale(0.7); transform-style: preserve-3d; }
         
-        /* قفل السحب والإفلات */
+        /* قفل السحب والإفلات المحسن */
         .castle-node { 
             position: absolute; width: 100px; height: 100px; transform-style: preserve-3d; 
             cursor: grab; touch-action: none; z-index: 10;
@@ -70,7 +70,7 @@
         .chat-input-area input { flex: 1; background: #1e293b; border: 1px solid #334155; border-radius: 6px; color: #fff; padding: 0 8px; font-size: 0.75rem; outline: none; }
         .chat-input-area button { width: 35px; background: #4338ca; border: none; border-radius: 6px; color: #fff; cursor: pointer; }
 
-        /* ألوان التمييز للقلاع */
+        /* ألوان التمييز والمواقع المبدئية للقلاع */
         .c-youtube { --accent-color: #ef4444; top: 10%; left: 15%; }
         .c-tiktok { --accent-color: #06b6d4; top: 10%; left: 55%; }
         .c-insta { --accent-color: #ec4899; top: 40%; left: 15%; }
@@ -87,13 +87,12 @@
 <body>
 
     <div class="main-wrapper">
-        <!-- منطقة الخريطة التفاعلية -->
         <div class="map-viewport" id="viewport">
             <div class="isometric-scene" id="scene">
                 <div class="castle-node c-youtube" data-id="youtube">
                     <div class="platform-badge"><i class="fab fa-youtube" style="color:#ef4444;"></i><span>يوتيوب</span></div>
                     <div class="castle-neon-grid"></div>
-                    <div class="castle-3d-structure"><div class="main-tower"><div class="castle-roof-top"></div></div></div>
+                    <div class="castle-33d-structure"><div class="main-tower"><div class="castle-roof-top"></div></div></div>
                 </div>
                 <div class="castle-node c-tiktok" data-id="tiktok">
                     <div class="platform-badge"><i class="fab fa-tiktok" style="color:#06b6d4;"></i><span>تيك توك</span></div>
@@ -113,14 +112,13 @@
             </div>
         </div>
 
-        <!-- التحكم الجانبي والشات -->
         <div class="sidebar-panel">
             <div class="sidebar-title"><i class="fas fa-vault"></i> إحصائيات الإمبراطورية</div>
             <div class="treasury-row"><span>الرصيد المتاح</span><span style="color:#6fda44;">$5,680.00</span></div>
             
             <div class="ai-chat-box">
                 <div class="chat-messages" id="chatContainer">
-                    <div class="msg ai">🤖 أهلاً بك يا قائد! السحب مصلح الآن بالكامل، والذكاء الاصطناعي جاهز للإجابة فوراً. جرب تحريك أي قلعة أو تحدث معي!</div>
+                    <div class="msg ai">🤖 أهلاً بك يا قائد! السحب مصلح الآن بالكامل بالماوس واللمس. جرب تحريك أي قلعة، وعند كتابة أول سؤال سيطلب منك الموقع لصق مفتاح الـ API الجديد الخاص بك لمرة واحدة فقط ليعمل الشات الحقيقي!</div>
                 </div>
                 <div class="chat-input-area">
                     <input type="text" id="userInput" placeholder="اكتب سؤالك هنا...">
@@ -135,19 +133,9 @@
         const SUPABASE_URL = "https://pujxqcfzljzxiijgfbtw.supabase.co";
         const SUPABASE_ANON_KEY = "EyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB1anhxY2Z6bGp6eGlpamdmYnR3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODI3NDI2OTksImV4cCI6MjA5ODMxODY5OX0.XPrxnm6PDfBFDDXmKInHVqwvUZ6Aa2vGxWW9peu4jKw";
         
-        // مفتاح الـ API البديل المحمي من قوقل (إذا تم حظر القديم، قم بتبديله هنا)
-        // الجزء الأول الثابت
-const p1 = "AQ.Ab8RN6LDJNEBxsiEwU-"; 
-
-// الجزء الثاني: ضع هنا باقي حروف مفتاحك الجديد الذي ستصنعه من Google AI Studio
-const p2 = "eRFU9m-u6oniav2fpg_qe1GPwTN7n2g"; 
-
-// هنا المتصفح يجمع الأول مع الثاني تلقائياً ليصبح المفتاح كاملاً وشغالاً!
-const GEMINI_API_KEY = p1 + p2;
-
         const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-        // جلب البيانات السحابية
+        // جلب البيانات السحابية لقنوات القلاع
         async function loadPositions() {
             try {
                 let { data } = await _supabase.from('castles').select('*');
@@ -168,7 +156,7 @@ const GEMINI_API_KEY = p1 + p2;
             await _supabase.from('castles').upsert({ castle_id: id, top_position: top, left_position: left });
         }
 
-        // ================= سكريبت سحب وإفلات متطور لا يتأثر بالميلان =================
+        // ================= سكريبت سحب وإفلات دقيق ومحسن باللمس والماوس =================
         const nodes = document.querySelectorAll('.castle-node');
         nodes.forEach(node => {
             let active = false;
@@ -187,7 +175,6 @@ const GEMINI_API_KEY = p1 + p2;
                 const parentRect = node.parentElement.getBoundingClientRect();
                 const nodeRect = node.getBoundingClientRect();
                 
-                // حساب المسافة الحالية بالنسبة المئوية
                 xOffset = ((nodeRect.left - parentRect.left) / parentRect.width) * 100;
                 yOffset = ((nodeRect.top - parentRect.top) / parentRect.height) * 100;
 
@@ -217,6 +204,10 @@ const GEMINI_API_KEY = p1 + p2;
                 let newLeft = xOffset + (currentX / parentRect.width) * 100;
                 let newTop = yOffset + (currentY / parentRect.height) * 100;
 
+                // قفل الحدود داخل الساحة لضمان عدم ضياع القلاع
+                if(newLeft < 0) newLeft = 0; if(newLeft > 90) newLeft = 90;
+                if(newTop < 0) newTop = 0; if(newTop > 90) newTop = 90;
+
                 node.style.left = newLeft + '%';
                 node.style.top = newTop + '%';
             }
@@ -228,37 +219,54 @@ const GEMINI_API_KEY = p1 + p2;
             }
         });
 
-        // ================= تشغيل مستشار الذكاء الاصطناعي الحقيقي =================
+        // ================= تشغيل مستشار الذكاء الاصطناعي الحقيقي وبدون حظر =================
         async function sendToAI() {
             const input = document.getElementById('userInput');
             const query = input.value.trim();
             if(!query) return;
 
+            // التحقق من وجود مفتاح API مخزن بأمان في المتصفح، إذا لم يوجد يطلبه فوراً بنافذة منبثقة
+            let savedKey = localStorage.getItem('MY_GEMINI_KEY');
+            if (!savedKey) {
+                savedKey = prompt("رجاءً أدخل مفتاح الـ API الجديد الخاص بك من Google AI Studio (يبدأ بـ AIzaSy):");
+                if (savedKey && savedKey.trim() !== "") {
+                    localStorage.setItem('MY_GEMINI_KEY', savedKey.trim());
+                } else {
+                    alert("لا يمكن بدء المحادثة بدون إضافة المفتاح.");
+                    return;
+                }
+            }
+
             const container = document.getElementById('chatContainer');
             
-            // رسالة المستخدم
+            // إضافة رسالة المستخدم
             const uBox = document.createElement('div'); uBox.className = 'msg user'; uBox.innerText = query;
             container.appendChild(uBox); input.value = '';
             
-            // رسالة التفكير
-            const aBox = document.createElement('div'); aBox.className = 'msg ai'; aBox.innerText = "🤖 جاري معالجة طلبك الإمبراطوري...";
+            // إضافة رسالة الانتظار والتحليل
+            const aBox = document.createElement('div'); aBox.className = 'msg ai'; aBox.innerText = "🤖 جاري معالجة طلبك الإمبراطوري الحقيقي...";
             container.appendChild(aBox); container.scrollTop = container.scrollHeight;
 
             try {
-                // استخدام الـ API الأساسي لـ Gemini مع حماية من الأخطاء
-                const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}`, {
+                const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${savedKey}`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ contents: [{ parts: [{ text: query }] }] })
                 });
+                
                 const data = await res.json();
+                
                 if(data.candidates && data.candidates[0].content.parts[0].text) {
                     aBox.innerText = data.candidates[0].content.parts[0].text;
+                } else if(data.error) {
+                    aBox.innerText = "🤖 خطأ من خادم قوقل: " + data.error.message;
+                    // إذا كان المفتاح غير صالح نقوم بحذفه ليعيد الطلب من جديد
+                    localStorage.removeItem('MY_GEMINI_KEY');
                 } else {
-                    aBox.innerText = "🤖 استلمت طلبك، لكن يبدو أن مفتاح الـ API تم تعليقه أمنياً من قوقل بسبب رفعه على جيت هاب العام. لكي يعمل الشات فوراً، قم بتغيير GEMINI_API_KEY في السطر 125 بمفتاح جديد من AI Studio.";
+                    aBox.innerText = "🤖 استلمت الإشارة ولكن لم أستطع صياغة الرد. يرجى مراجعة صلاحية المفتاح.";
                 }
             } catch(err) {
-                aBox.innerText = "🤖 خطأ في الاتصال بالـ AI الخارجي. يرجى التأكد من صلاحية مفتاح الـ API.";
+                aBox.innerText = "🤖 خطأ حقيقي في الاتصال: " + err.message;
             }
             container.scrollTop = container.scrollHeight;
         }
