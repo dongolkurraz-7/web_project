@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>إمبراطورية M-AI - الواجهة المطورة</title>
+    <title>إمبراطورية M-AI - اللوحة التكتيكية</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
@@ -23,7 +23,6 @@
             display: flex; flex-direction: column; overflow: hidden; position: relative; 
         }
 
-        /* ================= قماش الجسيمات الخلفية VFX ================= */
         #vfx-canvas {
             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
             pointer-events: none; z-index: 1;
@@ -97,33 +96,58 @@
 
         /* ================= لوحة التحكم السفلية المحدثة ================= */
         .bottom-panel {
-            width: 100%; height: 42%; background: #070a14; border-top: 2px solid #1a233a;
-            padding: 12px; display: flex; flex-direction: column; gap: 8px; z-index: 50;
+            width: 100%; height: 43%; background: #070a14; border-top: 2px solid #1a233a;
+            padding: 10px; display: flex; flex-direction: column; gap: 6px; z-index: 50;
             box-shadow: 0 -5px 25px rgba(0,0,0,0.6);
         }
 
         .panel-header-row { display: flex; justify-content: space-between; align-items: center; }
-        .sidebar-title { font-size: 0.85rem; font-weight: 900; color: #ffb800; display: flex; align-items: center; gap: 6px; }
+        .sidebar-title { font-size: 0.8rem; font-weight: 900; color: #ffb800; display: flex; align-items: center; gap: 6px; }
         
-        .stats-grid { display: flex; gap: 8px; width: 100%; }
-        .treasury-row { flex: 1; background: #0d1222; border: 1px solid #1e293b; padding: 8px 12px; border-radius: 10px; display: flex; justify-content: space-between; align-items: center; font-size: 0.75rem; font-weight: bold; }
+        .stats-grid { display: flex; gap: 6px; width: 100%; }
+        .treasury-row { flex: 1; background: #0d1222; border: 1px solid #1e293b; padding: 6px 10px; border-radius: 8px; display: flex; justify-content: space-between; align-items: center; font-size: 0.7rem; font-weight: bold; }
 
-        .ai-chat-box { flex: 1; background: #04070f; border: 1px solid #1d1b4b; border-radius: 14px; padding: 8px; display: flex; flex-direction: column; gap: 6px; }
+        /* القسم المزدوج: الشات + لوحة التحكم الفردية بالممالك */
+        .panel-dynamic-content {
+            flex: 1; display: flex; gap: 8px; width: 100%; overflow: hidden;
+        }
+
+        .ai-chat-box { flex: 1; background: #04070f; border: 1px solid #1d1b4b; border-radius: 12px; padding: 8px; display: flex; flex-direction: column; gap: 6px; }
         .chat-messages { flex: 1; overflow-y: auto; padding-bottom: 5px; scroll-behavior: smooth; }
-        .msg { font-size: 0.75rem; line-height: 1.4; padding: 8px 12px; border-radius: 10px; margin-bottom: 6px; word-break: break-word; animation: fadeInUp 0.2s ease-out; }
-        
-        @keyframes fadeInUp { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
-        
+        .msg { font-size: 0.72rem; line-height: 1.4; padding: 6px 10px; border-radius: 8px; margin-bottom: 5px; word-break: break-word; }
         .msg.ai { background: #111033; border-right: 3px solid #4f46e5; color: #cbd5e1; }
         .msg.user { background: #1e293b; border-left: 3px solid #ffb800; text-align: left; }
 
-        .chat-input-area { display: flex; gap: 6px; background: #0d1222; border: 1px solid #1e293b; border-radius: 10px; padding: 4px; align-items: center; }
-        .chat-input-area i.input-icon { color: #475569; margin-right: 8px; font-size: 0.85rem; }
-        .chat-input-area input { flex: 1; background: transparent; border: none; color: #fff; padding: 8px 4px; font-size: 0.8rem; outline: none; touch-action: auto; }
-        .chat-input-area button { width: 36px; height: 36px; background: linear-gradient(135deg, #4f46e5, #3730a3); border: none; border-radius: 8px; color: #fff; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 0.85rem; transition: transform 0.1s; }
-        .chat-input-area button:active { transform: scale(0.9); }
+        .chat-input-area { display: flex; gap: 4px; background: #0d1222; border: 1px solid #1e293b; border-radius: 8px; padding: 4px; align-items: center; }
+        .chat-input-area input { flex: 1; background: transparent; border: none; color: #fff; padding: 6px 4px; font-size: 0.75rem; outline: none; touch-action: auto; }
+        .chat-input-area button { width: 32px; height: 32px; background: linear-gradient(135deg, #4f46e5, #3730a3); border: none; border-radius: 6px; color: #fff; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 0.8rem; }
 
-        /* ================= نافذة السحب المتطورة جداً ================= */
+        /* لوحة التحكم التحليلية والتطوير للمملكة النشطة */
+        .castle-monitor-panel {
+            width: 45%; background: #0b1120; border: 1px solid #23225c; border-radius: 12px;
+            padding: 8px; display: flex; flex-direction: column; justify-content: space-between;
+            animation: fadeInRight 0.3s ease-out;
+        }
+        @keyframes fadeInRight { from { opacity: 0; transform: translateX(10px); } to { opacity: 1; transform: translateX(0); } }
+
+        .monitor-header { display: flex; align-items: center; gap: 6px; border-bottom: 1px solid #1e293b; padding-bottom: 4px; }
+        .monitor-header i { font-size: 1rem; }
+        .monitor-name { font-size: 0.75rem; font-weight: 900; color: #fff; }
+        .monitor-level { font-size: 0.65rem; background: #1e1b4b; color: #ffb800; padding: 2px 6px; border-radius: 10px; font-weight: bold; }
+
+        .monitor-stats { display: flex; flex-direction: column; gap: 4px; margin: 4px 0; }
+        .monitor-stat-row { display: flex; justify-content: space-between; font-size: 0.65rem; color: #94a3b8; }
+        .monitor-stat-row span.val { color: #fff; font-weight: bold; }
+
+        .btn-upgrade-castle {
+            width: 100%; background: linear-gradient(135deg, #4f46e5, #1d4ed8); color: white;
+            border: none; padding: 6px; border-radius: 6px; font-size: 0.65rem; font-weight: bold;
+            cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 4px;
+            box-shadow: 0 2px 8px rgba(79, 70, 229, 0.3); transition: transform 0.1s;
+        }
+        .btn-upgrade-castle:active { transform: scale(0.95); }
+
+        /* ================= نافذة السحب المنبثقة ================= */
         .modal-overlay {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: rgba(3, 5, 12, 0.9); backdrop-filter: blur(6px);
@@ -135,44 +159,38 @@
             display: flex; flex-direction: column; gap: 14px; position: relative; overflow: hidden;
         }
         .modal-title { font-size: 1rem; font-weight: 900; color: #ffb800; display: flex; align-items: center; gap: 8px; }
-        .modal-input { width: 100%; background: #0f172a; border: 1px solid #334155; border-radius: 10px; color: #fff; padding: 12px; font-size: 0.85rem; outline: none; touch-action: auto; transition: border-color 0.2s; }
-        .modal-input:focus { border-color: #4f46e5; }
+        .modal-input { width: 100%; background: #0f172a; border: 1px solid #334155; border-radius: 10px; color: #fff; padding: 12px; font-size: 0.85rem; outline: none; touch-action: auto; }
         .modal-select { width: 100%; background: #0f172a; border: 1px solid #334155; border-radius: 10px; color: #fff; padding: 12px; font-size: 0.85rem; outline: none; }
         .modal-actions { display: flex; gap: 10px; justify-content: flex-end; margin-top: 6px; }
         
-        .btn-confirm { background: linear-gradient(135deg, #16a34a, #15803d); color: white; border: none; padding: 10px 20px; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 0.8rem; transition: transform 0.1s; }
-        .btn-confirm:active { transform: scale(0.95); }
+        .btn-confirm { background: linear-gradient(135deg, #16a34a, #15803d); color: white; border: none; padding: 10px 20px; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 0.8rem; }
         .btn-cancel { background: #334155; color: white; border: none; padding: 10px 20px; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 0.8rem; }
 
-        /* شاشة النجاح المدمجة داخل المودال */
         .success-screen {
             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
             background: #0b1120; display: none; flex-direction: column;
-            align-items: center; justify-content: center; gap: 16px; padding: 20px; text-align: center;
-            z-index: 10; animation: fadeIn 0.3s ease-out;
+            align-items: center; justify-content: center; gap: 16px; padding: 20px; text-align: center; z-index: 10;
         }
-        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-        .success-icon { font-size: 3rem; color: #22c55e; filter: drop-shadow(0 0 15px rgba(34,197,94,0.4)); animation: popScale 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
-        @keyframes popScale { from { transform: scale(0); } to { transform: scale(1); } }
+        .success-icon { font-size: 3rem; color: #22c55e; filter: drop-shadow(0 0 15px rgba(34,197,94,0.4)); }
 
         @media (min-width: 769px) {
             body { flex-direction: row; }
             .map-viewport { height: 100%; flex: 1; }
-            .withdraw-btn-container { bottom: 20px; left: auto; right: 340px; }
-            .bottom-panel { width: 340px; height: 100%; border-top: none; border-right: 2px solid #1a233a; }
+            .withdraw-btn-container { bottom: 20px; left: auto; right: 360px; }
+            .bottom-panel { width: 360px; height: 100%; border-top: none; border-right: 2px solid #1a233a; }
             .stats-grid { flex-direction: column; }
+            .panel-dynamic-content { flex-direction: column; }
+            .castle-monitor-panel { width: 100%; height: 160px; }
             .isometric-scene { transform: rotateX(55deg) rotateZ(-45deg) scale(0.75); }
         }
     </style>
 </head>
 <body>
 
-    <!-- قماش المؤثرات البصرية الخلفية -->
     <canvas id="vfx-canvas"></canvas>
 
     <div class="map-viewport" id="viewport">
         <div class="isometric-scene" id="scene">
-            <!-- الممالك السبع الثابتة حركياً -->
             <div class="castle-node c-youtube" data-id="youtube">
                 <div class="platform-badge"><i class="fab fa-youtube" style="color:#ef4444;"></i><span>يوتيوب</span></div>
                 <div class="castle-neon-grid"></div>
@@ -211,58 +229,69 @@
         </div>
     </div>
 
-    <!-- زر طلب السحب الآمن الطافي -->
     <div class="withdraw-btn-container">
         <button class="withdraw-btn" id="openWithdrawModal">
             <i class="fas fa-shield-alt"></i> طلب سحب آمن
         </button>
     </div>
 
-    <!-- اللوحة السفلية المطورة بالكامل -->
     <div class="bottom-panel">
         <div class="panel-header-row">
-            <div class="sidebar-title"><i class="fas fa-vault"></i> إحصائيات الخزينة والعملة</div>
+            <div class="sidebar-title"><i class="fas fa-cubes"></i> غرفة العمليات والتحكم</div>
         </div>
 
         <div class="stats-grid">
-            <div class="treasury-row"><span>الرصيد المتاح:</span><span style="color:#4ade80;" id="availableBalance">$5,680.00</span></div>
+            <div class="treasury-row"><span>الرصيد المتاح:</span><span style="color:#4ade80;" id="availableBalance">5680.00</span></div>
             <div class="treasury-row"><span>العوائد المعلقة:</span><span style="color:#fbbf24;">$1,420.00</span></div>
         </div>
         
-        <div class="ai-chat-box">
-            <div class="chat-messages" id="chatContainer">
-                <div class="msg ai">👑 أهلاً بك يا قائد! المنظومة المحدثة جاهزة وبكامل تأثيراتها البصرية الآن.</div>
+        <div class="panel-dynamic-content">
+            <div class="ai-chat-box">
+                <div class="chat-messages" id="chatContainer">
+                    <div class="msg ai">👑 أهلاً بك يا قائد! انقر فوق أي مملكة في الساحة لفتح لوحة تطويرها المباشرة ومراقبة أرباحها الفردية.</div>
+                </div>
+                <div class="chat-input-area">
+                    <input type="text" id="userInput" placeholder="اكتب رسالتك للمنظومة...">
+                    <button id="sendBtn"><i class="fas fa-paper-plane"></i></button>
+                </div>
             </div>
-            <div class="chat-input-area">
-                <i class="fas fa-comment-alt input-icon"></i>
-                <input type="text" id="userInput" placeholder="اكتب رسالتك للمنظومة...">
-                <button id="sendBtn"><i class="fas fa-paper-plane"></i></button>
+
+            <div class="castle-monitor-panel" id="castleMonitor">
+                <div class="monitor-header">
+                    <i id="monitorIcon" class="fab fa-youtube" style="color: #ef4444;"></i>
+                    <span class="monitor-name" id="monitorName">يوتيوب</span>
+                    <span class="monitor-level" id="monitorLevelDisplay">LV.1</span>
+                </div>
+                <div class="monitor-stats">
+                    <div class="monitor-stat-row"><span>معدل الإنتاج:</span><span class="val" id="monitorRate">+$12.50/ثانية</span></div>
+                    <div class="monitor-stat-row"><span>تقييم المملكة:</span><span class="val" style="color:#fbbf24;"><i class="fas fa-star"></i> 4.8</span></div>
+                    <div class="monitor-stat-row"><span>عقود نشطة:</span><span class="val">14 مهمة</span></div>
+                </div>
+                <button class="btn-upgrade-castle" id="upgradeCastleBtn">
+                    <i class="fas fa-bolt"></i> تطوير المملكة (تكلفة $150)
+                </button>
             </div>
         </div>
     </div>
 
-    <!-- نافذة السحب المنبثقة المتطورة -->
     <div class="modal-overlay" id="withdrawModal">
         <div class="modal-content">
-            <!-- شاشة النجاح المدمجة -->
             <div class="success-screen" id="successScreen">
                 <i class="fas fa-check-circle success-icon"></i>
                 <h3 style="color:#ffb800; font-weight:900;">تم إرسال الطلب بنجاح!</h3>
-                <p style="font-size:0.8rem; color:#94a3b8; line-height:1.5;">لقد تم رفع طلب السحب الآمن الخاص بك إلى الخزينة السحابية بنجاح وجاري تدقيقه الفوري.</p>
+                <p style="font-size:0.8rem; color:#94a3b8; line-height:1.5;">لقد تم رفع طلب السحب الآمن الخاص بك إلى الخزينة بنجاح وجاري تدقيقه الفوري.</p>
                 <button class="btn-confirm" id="closeSuccessBtn" style="background:#4f46e5; margin-top:10px;">موافق</button>
             </div>
 
             <div class="modal-title"><i class="fas fa-shield-halved"></i> بوابة السحب الآمن للرصيد</div>
-            <p style="font-size:0.75rem; color:#94a3b8;">الرصيد المتاح حالياً هو $5,680.00. يرجى ملء البيانات بدقة.</p>
+            <p style="font-size:0.75rem; color:#94a3b8;">يرجى ملء بيانات السحب بدقة.</p>
             
             <select class="modal-select" id="walletType">
                 <option value="Payeer">محفظة الباير (Payeer)</option>
                 <option value="USDT (TRC-20)">USDT (TRC-20)</option>
                 <option value="PayPal">حساب باي بال (PayPal)</option>
             </select>
-
             <input type="text" class="modal-input" id="walletAddress" placeholder="أدخل رقم الحساب أو عنوان المحفظة...">
-
             <div class="modal-actions">
                 <button class="btn-cancel" id="closeWithdrawModal">إلغاء</button>
                 <button class="btn-confirm" id="confirmWithdraw">تأكيد طلب السحب</button>
@@ -274,8 +303,21 @@
         // إعدادات ومزامنة Supabase
         const SUPABASE_URL = "https://pujxqcfzljzxiijgfbtw.supabase.co";
         const SUPABASE_ANON_KEY = "EyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB1anhxY2Z6bGp6eGlpamdmYnR3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODI3NDI2OTksImV4cCI6MjA5ODMxODY5OX0.XPrxnm6PDfBFDDXmKInHVqwvUZ6Aa2vGxWW9peu4jKw";
-        
         const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+        // قاعدة بيانات الحالة المحلية للممالك السبع لتعمل فورياً وتفاعلياً
+        const castlesData = {
+            youtube: { name: 'يوتيوب', icon: 'fab fa-youtube', color: '#ef4444', level: 1, rate: 12.50, contracts: 14, score: 4.8 },
+            tiktok: { name: 'تيك توك', icon: 'fab fa-tiktok', color: '#06b6d4', level: 1, rate: 18.20, contracts: 22, score: 4.9 },
+            insta: { name: 'انستغرام', icon: 'fab fa-instagram', color: '#ec4899', level: 1, rate: 9.40, contracts: 8, score: 4.7 },
+            snap: { name: 'سناب شات', icon: 'fab fa-snapchat', color: '#eab308', level: 1, rate: 15.00, contracts: 11, score: 4.6 },
+            facebook: { name: 'فيسبوك', icon: 'fab fa-facebook-f', color: '#3b82f6', level: 1, rate: 7.10, contracts: 19, score: 4.4 },
+            linkedin: { name: 'لينكد إن', icon: 'fab fa-linkedin-in', color: '#0284c7', level: 1, rate: 25.00, contracts: 5, score: 4.9 },
+            upwork: { name: 'أب ورك', icon: 'fas fa-briefcase', color: '#22c55e', level: 1, rate: 35.50, contracts: 3, score: 5.0 }
+        };
+
+        let activeCastleId = 'youtube';
+        let userBalance = 5680.00;
 
         async function loadPositions() {
             try {
@@ -289,61 +331,51 @@
                         }
                     });
                 }
-            } catch(e) { console.log("خطأ تحميل سحابي:", e); }
+            } catch(e) { console.log(e); }
         }
         window.addEventListener('DOMContentLoaded', loadPositions);
 
         async function savePosition(id, top, left) {
             try {
                 await _supabase.from('castles').upsert({ castle_id: id, top_position: top, left_position: left });
-            } catch(e) { console.log("خطأ حفظ سحابي:", e); }
+            } catch(e) { console.log(e); }
         }
 
         // ================= محرك الـ VFX Particles للخلفية السحابية =================
-        const canvas = document.getElementById('vfx-canvas');
-        const ctx = canvas.getContext('2d');
-        let particles = [];
-
+        const canvas = document.getElementById('vfx-canvas'); const ctx = canvas.getContext('2d'); let particles = [];
         function resizeCanvas() { canvas.width = window.innerWidth; canvas.height = window.innerHeight; }
-        window.addEventListener('resize', resizeCanvas);
-        resizeCanvas();
-
+        window.addEventListener('resize', resizeCanvas); resizeCanvas();
         class Particle {
-            constructor() {
-                this.x = Math.random() * canvas.width;
-                this.y = Math.random() * canvas.height;
-                this.size = Math.random() * 2 + 0.5;
-                this.speedX = Math.random() * 0.3 - 0.15;
-                this.speedY = Math.random() * -0.4 - 0.1; 
-                this.alpha = Math.random() * 0.5 + 0.2;
-            }
-            update() {
-                this.x += this.speedX; this.y += this.speedY;
-                if (this.y < 0) { this.y = canvas.height; this.x = Math.random() * canvas.width; }
-            }
-            draw() {
-                ctx.save();
-                ctx.globalAlpha = this.alpha;
-                ctx.fillStyle = '#6366f1';
-                ctx.beginPath();
-                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
-                ctx.fill();
-                ctx.restore();
-            }
+            constructor() { this.x = Math.random() * canvas.width; this.y = Math.random() * canvas.height; this.size = Math.random() * 2 + 0.5; this.speedX = Math.random() * 0.3 - 0.15; this.speedY = Math.random() * -0.4 - 0.1; this.alpha = Math.random() * 0.5 + 0.2; }
+            update() { this.x += this.speedX; this.y += this.speedY; if (this.y < 0) { this.y = canvas.height; this.x = Math.random() * canvas.width; } }
+            draw() { ctx.save(); ctx.globalAlpha = this.alpha; ctx.fillStyle = '#6366f1'; ctx.beginPath(); ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2); ctx.fill(); ctx.restore(); }
         }
-
-        function initVFX() { particles = []; for (let i = 0; i < 40; i++) { particles.push(new Particle()); } }
+        function initVFX() { for (let i = 0; i < 40; i++) particles.push(new Particle()); }
         function animateVFX() { ctx.clearRect(0, 0, canvas.width, canvas.height); particles.forEach(p => { p.update(); p.draw(); }); requestAnimationFrame(animateVFX); }
         initVFX(); animateVFX();
 
-        // ================= سكريبت الحركة الموزون والمثبت للجر =================
+        // ================= تحديث واجهة لوحة معلومات القلعة النشطة =================
+        function updateMonitorUI(id) {
+            activeCastleId = id;
+            const data = castlesData[id];
+            
+            const iconEl = document.getElementById('monitorIcon');
+            iconEl.className = data.icon;
+            iconEl.style.color = data.color;
+            
+            document.getElementById('monitorName').innerText = data.name;
+            document.getElementById('monitorLevelDisplay').innerText = `LV.${data.level}`;
+            document.getElementById('monitorRate').innerText = `+$${data.rate.toFixed(2)}/ثانية`;
+        }
+
+        // ================= سكريبت التحكم الحركي والتفاعلي الفوري =================
         const nodes = document.querySelectorAll('.castle-node');
         nodes.forEach(node => {
-            let active = false;
-            let currentX, currentY, initialX, initialY;
-            let xOffset = 0, yOffset = 0;
+            let active = false; let hasMoved = false;
+            let currentX, currentY, initialX, initialY, xOffset = 0, yOffset = 0;
 
             const start = (e) => {
+                hasMoved = false;
                 const parentRect = node.parentElement.getBoundingClientRect();
                 const nodeRect = node.getBoundingClientRect();
                 xOffset = ((nodeRect.left - parentRect.left) / parentRect.width) * 100;
@@ -358,6 +390,7 @@
 
             const move = (e) => {
                 if (!active) return;
+                hasMoved = true;
                 e.preventDefault();
                 const clientX = e.type.includes('touch') ? e.touches[0].clientX : e.clientX;
                 const clientY = e.type.includes('touch') ? e.touches[0].clientY : e.clientY;
@@ -376,7 +409,14 @@
             const end = () => {
                 if (!active) return;
                 active = false; node.classList.remove('dragging');
-                savePosition(node.getAttribute('data-id'), parseFloat(node.style.top), parseFloat(node.style.left));
+                
+                // إذا نقر فقط بدون سحب، نفتح لوحة المعلومات فوراً
+                if (!hasMoved) {
+                    const id = node.getAttribute('data-id');
+                    updateMonitorUI(id);
+                } else {
+                    savePosition(node.getAttribute('data-id'), parseFloat(node.style.top), parseFloat(node.style.left));
+                }
             };
 
             node.addEventListener('touchstart', start, {passive: false});
@@ -387,26 +427,44 @@
             window.addEventListener('mouseup', end);
         });
 
-        // ================= تحكم الـ Modal وشاشة النجاح المحدثة =================
-        const modal = document.getElementById('withdrawModal');
-        const successScreen = document.getElementById('successScreen');
-        
+        // ================= نظام ترقية وتطوير القلعة والخصم من الرصيد =================
+        document.getElementById('upgradeCastleBtn').addEventListener('click', () => {
+            if (userBalance < 150) {
+                alert("الرصيد في الخزينة غير كافٍ لإتمام التطوير السحابي يا قائد!");
+                return;
+            }
+            
+            // خصم الرصيد وتحديث واجهة الخزينة
+            userBalance -= 150;
+            document.getElementById('availableBalance').innerText = `$${userBalance.toFixed(2)}`;
+            
+            // ترقية مستويات ومعدلات إنتاج القلعة النشطة
+            const data = castlesData[activeCastleId];
+            data.level += 1;
+            data.rate += (data.rate * 0.25); // زيادة معدل الإنتاج بنسبة 25%
+            
+            updateMonitorUI(activeCastleId);
+            
+            // إرسال إشعار في الشات بنجاح الترقية
+            const container = document.getElementById('chatContainer');
+            const noteBox = document.createElement('div');
+            noteBox.className = 'msg ai';
+            noteBox.style.borderRight = '3px solid #22c55e';
+            noteBox.innerText = `⚡ تم بنجاح ترقية مملكة "${data.name}" إلى المستوى ${data.level}! معدل الإيرادات ارتفع تلقائياً.`;
+            container.appendChild(noteBox);
+            container.scrollTop = container.scrollHeight;
+        });
+
+        // ================= تحكم الـ Modal وشاشة النجاح للسحب =================
+        const modal = document.getElementById('withdrawModal'); const successScreen = document.getElementById('successScreen');
         document.getElementById('openWithdrawModal').addEventListener('click', () => { modal.style.display = 'flex'; successScreen.style.display = 'none'; });
         document.getElementById('closeWithdrawModal').addEventListener('click', () => modal.style.display = 'none');
-        
         document.getElementById('confirmWithdraw').addEventListener('click', () => {
             const address = document.getElementById('walletAddress').value.trim();
             if(!address) { alert('الرجاء إدخال عنوان المحفظة أولاً يا قائد!'); return; }
-            
-            // إظهار شاشة النجاح الرهيبة مباشرة بدلاً من الـ alert
             successScreen.style.display = 'flex';
         });
-
-        document.getElementById('closeSuccessBtn').addEventListener('click', () => {
-            modal.style.display = 'none';
-            successScreen.style.display = 'none';
-            document.getElementById('walletAddress').value = '';
-        });
+        document.getElementById('closeSuccessBtn').addEventListener('click', () => { modal.style.display = 'none'; successScreen.style.display = 'none'; document.getElementById('walletAddress').value = ''; });
 
         // الشات التفاعلي السلس
         document.getElementById('sendBtn').addEventListener('click', () => {
