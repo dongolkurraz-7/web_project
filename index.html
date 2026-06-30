@@ -3,33 +3,39 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>منظومة الإمبراطورية ثلاثية الأبعاد</title>
+    <title>واجهة الممالك ثلاثية الأبعاد</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Tajawal:wght=500;700;900&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Tajawal:wght@500;700;900&display=swap');
 
         * {
             margin: 0; padding: 0; box-sizing: border-box;
             font-family: 'Tajawal', sans-serif;
         }
 
-        body { background-color: #05070f; color: #fff; height: 100vh; overflow: hidden; position: relative; }
-        .main-wrapper { display: flex; height: 100vh; width: 100vw; }
-
-        /* منطقة الخريطة */
-        .map-viewport {
-            flex: 1; height: 100%; background-color: #0b0f19; position: relative;
-            background-image: linear-gradient(rgba(255,255,255,0.01) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.01) 1px, transparent 1px);
-            background-size: 40px 40px; overflow: hidden;
+        body { 
+            background-color: #05070f; color: #fff; height: 100vh; 
+            display: flex; flex-direction: column; overflow: hidden; position: relative; 
         }
 
-        .isometric-scene { width: 100%; height: 100%; position: relative; transform: rotateX(55deg) rotateZ(-45deg) scale(0.7); transform-style: preserve-3d; }
+        /* ================= منطقة الخريطة العلوية ================= */
+        .map-viewport {
+            flex: 1; width: 100%; background-color: #0b0f19; position: relative;
+            background-image: linear-gradient(rgba(255,255,255,0.01) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.01) 1px, transparent 1px);
+            background-size: 35px 35px; overflow: hidden;
+        }
+
+        .isometric-scene { 
+            width: 100%; height: 100%; position: relative; 
+            transform: rotateX(55deg) rotateZ(-45deg) scale(0.65); 
+            transform-style: preserve-3d; 
+        }
         
-        /* قفل السحب والإفلات المحسن */
+        /* تصميم وعناصر القلاع ثلاثية الأبعاد */
         .castle-node { 
-            position: absolute; width: 100px; height: 100px; transform-style: preserve-3d; 
+            position: absolute; width: 85px; height: 85px; transform-style: preserve-3d; 
             cursor: grab; touch-action: none; z-index: 10;
         }
         .castle-node:active { cursor: grabbing; }
@@ -40,29 +46,39 @@
             box-shadow: 0 0 20px var(--accent-color);
         }
 
-        .castle-3d-structure { position: absolute; width: 50px; height: 50px; top: 25px; left: 25px; transform: rotateZ(45deg) rotateX(-55deg) translateY(-25px); transform-style: preserve-3d; pointer-events: none; }
-        .main-tower { position: absolute; width: 40px; height: 75px; background: linear-gradient(135deg, #64748b, #334155); border: 2px solid #1e293b; border-radius: 4px; }
-        .castle-roof-top { position: absolute; top: -32px; left: -4px; width: 44px; height: 32px; background: radial-gradient(circle at 30% 30%, var(--accent-color), #3b0712); clip-path: polygon(50% 0%, 0% 100%, 100% 100%); }
+        .castle-3d-structure { 
+            position: absolute; width: 40px; height: 40px; top: 22px; left: 22px; 
+            transform: rotateZ(45deg) rotateX(-55deg) translateY(-20px); 
+            transform-style: preserve-3d; pointer-events: none; 
+        }
+        .main-tower { position: absolute; width: 35px; height: 65px; background: linear-gradient(135deg, #64748b, #334155); border: 2px solid #1e293b; border-radius: 4px; }
+        .castle-roof-top { position: absolute; top: -28px; left: -3px; width: 39px; height: 28px; background: radial-gradient(circle at 30% 30%, var(--accent-color), #3b0712); clip-path: polygon(50% 0%, 0% 100%, 100% 100%); }
 
         .platform-badge {
-            position: absolute; top: -90px; left: 50%; transform: translateX(-50%) rotateZ(45deg) rotateX(-55deg);
+            position: absolute; top: -80px; left: 50%; transform: translateX(-50%) rotateZ(45deg) rotateX(-55deg);
             background: #090d16; border: 2px solid var(--accent-color); padding: 4px 10px; border-radius: 20px; white-space: nowrap; pointer-events: none;
         }
-        .platform-badge span { font-size: 0.75rem; font-weight: 700; color: #fff; margin-right: 4px; }
+        .platform-badge span { font-size: 0.7rem; font-weight: 700; color: #fff; margin-right: 4px; }
 
-        /* شريط التحكم الجانبي */
-        .sidebar-panel {
-            width: 300px; height: 100%; background: #0a0f1e; border-right: 2px solid #1e293b;
-            padding: 15px; display: flex; flex-direction: column; z-index: 50;
+        /* مواضع البدء الافتراضية للقلاع */
+        .c-youtube  { --accent-color: #ef4444; top: 15%; left: 15%; }
+        .c-tiktok   { --accent-color: #06b6d4; top: 15%; left: 55%; }
+        .c-insta    { --accent-color: #ec4899; top: 50%; left: 15%; }
+        .c-snap     { --accent-color: #eab308; top: 50%; left: 55%; }
+
+        /* ================= لوحة التحكم السفلى للبيانات والشات ================= */
+        .bottom-panel {
+            width: 100%; height: 40%; background: #0a0f1e; border-top: 2px solid #1e293b;
+            padding: 12px; display: flex; flex-direction: column; gap: 8px; z-index: 50;
         }
 
-        .sidebar-title { font-size: 0.85rem; font-weight: 900; color: #ffb800; margin-bottom: 10px; }
-        .treasury-row { background: #111827; border: 1px solid #1e293b; padding: 10px; border-radius: 8px; margin-bottom: 6px; display: flex; justify-content: space-between; font-size: 0.8rem; }
+        .panel-header-row { display: flex; justify-content: space-between; align-items: center; }
+        .sidebar-title { font-size: 0.8rem; font-weight: 900; color: #ffb800; }
+        .treasury-row { background: #111827; border: 1px solid #1e293b; padding: 6px 12px; border-radius: 8px; display: flex; gap: 8px; font-size: 0.75rem; }
 
-        /* صندوق الشات المحسن */
-        .ai-chat-box { flex: 1; background: #090d16; border: 1px solid #312e81; border-radius: 12px; padding: 10px; display: flex; flex-direction: column; margin-top: 10px; }
-        .chat-messages { flex: 1; overflow-y: auto; padding-bottom: 10px; }
-        .msg { font-size: 0.75rem; line-height: 1.4; padding: 8px; border-radius: 8px; margin-bottom: 8px; }
+        .ai-chat-box { flex: 1; background: #090d16; border: 1px solid #312e81; border-radius: 12px; padding: 10px; display: flex; flex-direction: column; }
+        .chat-messages { flex: 1; overflow-y: auto; padding-bottom: 5px; }
+        .msg { font-size: 0.75rem; line-height: 1.4; padding: 8px; border-radius: 8px; margin-bottom: 6px; }
         .msg.ai { background: #1e1b4b; border-right: 3px solid #6366f1; color: #cbd5e1; }
         .msg.user { background: #1e293b; border-left: 3px solid #ffb800; text-align: left; }
 
@@ -70,72 +86,66 @@
         .chat-input-area input { flex: 1; background: #1e293b; border: 1px solid #334155; border-radius: 6px; color: #fff; padding: 0 8px; font-size: 0.75rem; outline: none; }
         .chat-input-area button { width: 35px; background: #4338ca; border: none; border-radius: 6px; color: #fff; cursor: pointer; }
 
-        /* ألوان التمييز والمواقع المبدئية للقلاع */
-        .c-youtube { --accent-color: #ef4444; top: 10%; left: 15%; }
-        .c-tiktok { --accent-color: #06b6d4; top: 10%; left: 55%; }
-        .c-insta { --accent-color: #ec4899; top: 40%; left: 15%; }
-        .c-snap { --accent-color: #eab308; top: 40%; left: 55%; }
-
-        @media (max-width: 768px) {
-            .main-wrapper { flex-direction: column; }
-            .map-viewport { height: 55%; width: 100%; }
-            .sidebar-panel { height: 45%; width: 100%; border-right: none; border-top: 2px solid #1e293b; }
-            .isometric-scene { transform: rotateX(55deg) rotateZ(-45deg) scale(0.5); }
+        /* شاشات الكمبيوتر اللوحي والمكتبي الكبيرة */
+        @media (min-width: 769px) {
+            body { flex-direction: row; }
+            .map-viewport { height: 100%; flex: 1; }
+            .bottom-panel { width: 300px; height: 100%; border-top: none; border-right: 2px solid #1e293b; }
         }
     </style>
 </head>
 <body>
 
-    <div class="main-wrapper">
-        <div class="map-viewport" id="viewport">
-            <div class="isometric-scene" id="scene">
-                <div class="castle-node c-youtube" data-id="youtube">
-                    <div class="platform-badge"><i class="fab fa-youtube" style="color:#ef4444;"></i><span>يوتيوب</span></div>
-                    <div class="castle-neon-grid"></div>
-                    <div class="castle-33d-structure"><div class="main-tower"><div class="castle-roof-top"></div></div></div>
-                </div>
-                <div class="castle-node c-tiktok" data-id="tiktok">
-                    <div class="platform-badge"><i class="fab fa-tiktok" style="color:#06b6d4;"></i><span>تيك توك</span></div>
-                    <div class="castle-neon-grid"></div>
-                    <div class="castle-3d-structure"><div class="main-tower"><div class="castle-roof-top"></div></div></div>
-                </div>
-                <div class="castle-node c-insta" data-id="insta">
-                    <div class="platform-badge"><i class="fab fa-instagram" style="color:#ec4899;"></i><span>انستغرام</span></div>
-                    <div class="castle-neon-grid"></div>
-                    <div class="castle-3d-structure"><div class="main-tower"><div class="castle-roof-top"></div></div></div>
-                </div>
-                <div class="castle-node c-snap" data-id="snap">
-                    <div class="platform-badge"><i class="fab fa-snapchat" style="color:#eab308;"></i><span>سناب</span></div>
-                    <div class="castle-neon-grid"></div>
-                    <div class="castle-3d-structure"><div class="main-tower"><div class="castle-roof-top"></div></div></div>
-                </div>
+    <div class="map-viewport" id="viewport">
+        <div class="isometric-scene" id="scene">
+            <div class="castle-node c-youtube" data-id="youtube">
+                <div class="platform-badge"><i class="fab fa-youtube" style="color:#ef4444;"></i><span>يوتيوب</span></div>
+                <div class="castle-neon-grid"></div>
+                <div class="castle-3d-structure"><div class="main-tower"><div class="castle-roof-top"></div></div></div>
+            </div>
+            <div class="castle-node c-tiktok" data-id="tiktok">
+                <div class="platform-badge"><i class="fab fa-tiktok" style="color:#06b6d4;"></i><span>تيك توك</span></div>
+                <div class="castle-neon-grid"></div>
+                <div class="castle-3d-structure"><div class="main-tower"><div class="castle-roof-top"></div></div></div>
+            </div>
+            <div class="castle-node c-insta" data-id="insta">
+                <div class="platform-badge"><i class="fab fa-instagram" style="color:#ec4899;"></i><span>انستغرام</span></div>
+                <div class="castle-neon-grid"></div>
+                <div class="castle-3d-structure"><div class="main-tower"><div class="castle-roof-top"></div></div></div>
+            </div>
+            <div class="castle-node c-snap" data-id="snap">
+                <div class="platform-badge"><i class="fab fa-snapchat" style="color:#eab308;"></i><span>سناب</span></div>
+                <div class="castle-neon-grid"></div>
+                <div class="castle-3d-structure"><div class="main-tower"><div class="castle-roof-top"></div></div></div>
             </div>
         </div>
+    </div>
 
-        <div class="sidebar-panel">
+    <div class="bottom-panel">
+        <div class="panel-header-row">
             <div class="sidebar-title"><i class="fas fa-vault"></i> إحصائيات الإمبراطورية</div>
-            <div class="treasury-row"><span>الرصيد المتاح</span><span style="color:#6fda44;">$5,680.00</span></div>
-            
-            <div class="ai-chat-box">
-                <div class="chat-messages" id="chatContainer">
-                    <div class="msg ai">🤖 أهلاً بك يا قائد! السحب مصلح الآن بالكامل بالماوس واللمس. جرب تحريك أي قلعة، وعند كتابة أول سؤال سيطلب منك الموقع لصق مفتاح الـ API الجديد الخاص بك لمرة واحدة فقط ليعمل الشات الحقيقي!</div>
-                </div>
-                <div class="chat-input-area">
-                    <input type="text" id="userInput" placeholder="اكتب سؤالك هنا...">
-                    <button id="sendBtn"><i class="fas fa-paper-plane"></i></button>
-                </div>
+            <div class="treasury-row"><span>الرصيد:</span><span style="color:#6fda44;">$5,680.00</span></div>
+        </div>
+        
+        <div class="ai-chat-box">
+            <div class="chat-messages" id="chatContainer">
+                <div class="msg ai">👑 أهلاً بك يا قائد! قمنا بضبط أبعاد الصفحة بالكامل لتناسب شاشة جوالك. جرب سحب وإفلات أي قلعة الآن لتتحرك وتُحفظ تلقائياً في قاعتك السحابية بمرونة تامة!</div>
+            </div>
+            <div class="chat-input-area">
+                <input type="text" id="userInput" placeholder="اكتب رسالتك هنا...">
+                <button id="sendBtn"><i class="fas fa-paper-plane"></i></button>
             </div>
         </div>
     </div>
 
     <script>
-        // إعدادات الـ Supabase
+        // إعدادات الـ Supabase لتأمين الحفظ السحابي
         const SUPABASE_URL = "https://pujxqcfzljzxiijgfbtw.supabase.co";
         const SUPABASE_ANON_KEY = "EyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB1anhxY2Z6bGp6eGlpamdmYnR3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODI3NDI2OTksImV4cCI6MjA5ODMxODY5OX0.XPrxnm6PDfBFDDXmKInHVqwvUZ6Aa2vGxWW9peu4jKw";
         
         const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-        // جلب البيانات السحابية لقنوات القلاع
+        // تحميل المواقع السحابية فور التشغيل
         async function loadPositions() {
             try {
                 let { data } = await _supabase.from('castles').select('*');
@@ -156,7 +166,7 @@
             await _supabase.from('castles').upsert({ castle_id: id, top_position: top, left_position: left });
         }
 
-        // ================= سكريبت سحب وإفلات دقيق ومحسن باللمس والماوس =================
+        // ================= منظومة سحب وإفلات نقية وحرة ومقاومة للانحراف =================
         const nodes = document.querySelectorAll('.castle-node');
         nodes.forEach(node => {
             let active = false;
@@ -204,9 +214,9 @@
                 let newLeft = xOffset + (currentX / parentRect.width) * 100;
                 let newTop = yOffset + (currentY / parentRect.height) * 100;
 
-                // قفل الحدود داخل الساحة لضمان عدم ضياع القلاع
-                if(newLeft < 0) newLeft = 0; if(newLeft > 90) newLeft = 90;
-                if(newTop < 0) newTop = 0; if(newTop > 90) newTop = 90;
+                // حماية حدود الخريطة لمنع القلاع من الهروب خارج الشاشة
+                if(newLeft < 2) newLeft = 2; if(newLeft > 85) newLeft = 85;
+                if(newTop < 2) newTop = 2; if(newTop > 85) newTop = 85;
 
                 node.style.left = newLeft + '%';
                 node.style.top = newTop + '%';
@@ -219,60 +229,15 @@
             }
         });
 
-        // ================= تشغيل مستشار الذكاء الاصطناعي الحقيقي وبدون حظر =================
-        async function sendToAI() {
+        // تم إيقاف دالة الإرسال مؤقتاً بناءً على طلبك لضبط الواجهة أولاً
+        document.getElementById('sendBtn').addEventListener('click', () => {
             const input = document.getElementById('userInput');
-            const query = input.value.trim();
-            if(!query) return;
-
-            // التحقق من وجود مفتاح API مخزن بأمان في المتصفح، إذا لم يوجد يطلبه فوراً بنافذة منبثقة
-            let savedKey = localStorage.getItem('MY_GEMINI_KEY');
-            if (!savedKey) {
-                savedKey = prompt("رجاءً أدخل مفتاح الـ API الجديد الخاص بك من Google AI Studio (يبدأ بـ AIzaSy):");
-                if (savedKey && savedKey.trim() !== "") {
-                    localStorage.setItem('MY_GEMINI_KEY', savedKey.trim());
-                } else {
-                    alert("لا يمكن بدء المحادثة بدون إضافة المفتاح.");
-                    return;
-                }
-            }
-
+            if(!input.value.trim()) return;
             const container = document.getElementById('chatContainer');
-            
-            // إضافة رسالة المستخدم
-            const uBox = document.createElement('div'); uBox.className = 'msg user'; uBox.innerText = query;
+            const uBox = document.createElement('div'); uBox.className = 'msg user'; uBox.innerText = input.value;
             container.appendChild(uBox); input.value = '';
-            
-            // إضافة رسالة الانتظار والتحليل
-            const aBox = document.createElement('div'); aBox.className = 'msg ai'; aBox.innerText = "🤖 جاري معالجة طلبك الإمبراطوري الحقيقي...";
-            container.appendChild(aBox); container.scrollTop = container.scrollHeight;
-
-            try {
-                const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${savedKey}`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ contents: [{ parts: [{ text: query }] }] })
-                });
-                
-                const data = await res.json();
-                
-                if(data.candidates && data.candidates[0].content.parts[0].text) {
-                    aBox.innerText = data.candidates[0].content.parts[0].text;
-                } else if(data.error) {
-                    aBox.innerText = "🤖 خطأ من خادم قوقل: " + data.error.message;
-                    // إذا كان المفتاح غير صالح نقوم بحذفه ليعيد الطلب من جديد
-                    localStorage.removeItem('MY_GEMINI_KEY');
-                } else {
-                    aBox.innerText = "🤖 استلمت الإشارة ولكن لم أستطع صياغة الرد. يرجى مراجعة صلاحية المفتاح.";
-                }
-            } catch(err) {
-                aBox.innerText = "🤖 خطأ حقيقي في الاتصال: " + err.message;
-            }
             container.scrollTop = container.scrollHeight;
-        }
-
-        document.getElementById('sendBtn').addEventListener('click', sendToAI);
-        document.getElementById('userInput').addEventListener('keypress', (e) => { if(e.key === 'Enter') sendToAI(); });
+        });
     </script>
 </body>
 </html>
