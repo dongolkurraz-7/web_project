@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>إمبراطورية الممالك السحابية</title>
+    <title>إمبراطورية الممالك السحابية - التطوير الشامل</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
@@ -69,18 +69,32 @@
         .c-linkedin  { --accent-color: #0284c7; top: 70%; left: 20%; }
         .c-upwork    { --accent-color: #22c55e; top: 70%; left: 60%; }
 
-        /* ================= لوحة التحكم السفلية النظيفة والموجزة ================= */
+        /* زر طلب سحب آمن الطافي فوق اللوحة */
+        .withdraw-btn-container {
+            position: absolute; bottom: 40%; left: 20px; z-index: 100;
+        }
+        .withdraw-btn {
+            background: linear-gradient(135deg, #8b0000, #b22222); color: white;
+            border: none; padding: 10px 20px; border-radius: 30px; font-weight: bold;
+            font-size: 0.85rem; cursor: pointer; display: flex; align-items: center; gap: 8px;
+            box-shadow: 0 4px 15px rgba(178,34,34,0.4); transition: transform 0.2s;
+        }
+        .withdraw-btn:active { transform: scale(0.95); }
+
+        /* ================= لوحة التحكم السفلية الكاملة المتناسقة ================= */
         .bottom-panel {
             width: 100%; height: 38%; background: #0a0f1e; border-top: 2px solid #1e293b;
             padding: 12px; display: flex; flex-direction: column; gap: 8px; z-index: 50;
-            box-shadow: 0 -5px 20px rgba(0,0,0,0.5);
+            box-shadow: 0 -5px 20px rgba(0,0,0,0.5); overflow-y: auto;
         }
 
-        .panel-header-row { display: flex; justify-content: space-between; align-items: center; }
+        .panel-header-row { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #1e293b; padding-bottom: 6px; }
         .sidebar-title { font-size: 0.85rem; font-weight: 900; color: #ffb800; display: flex; align-items: center; gap: 6px; }
-        .treasury-row { background: #111827; border: 1px solid #1e293b; padding: 6px 14px; border-radius: 8px; display: flex; gap: 8px; font-size: 0.8rem; font-weight: bold; }
+        
+        .stats-container { display: flex; flex-direction: column; gap: 6px; margin: 4px 0; }
+        .treasury-row { background: #111827; border: 1px solid #1e293b; padding: 8px 14px; border-radius: 8px; display: flex; justify-content: space-between; font-size: 0.8rem; font-weight: bold; }
 
-        .ai-chat-box { flex: 1; background: #090d16; border: 1px solid #312e81; border-radius: 12px; padding: 10px; display: flex; flex-direction: column; }
+        .ai-chat-box { flex: 1; background: #090d16; border: 1px solid #312e81; border-radius: 12px; padding: 10px; display: flex; flex-direction: column; min-height: 110px; }
         .chat-messages { flex: 1; overflow-y: auto; padding-bottom: 5px; }
         .msg { font-size: 0.75rem; line-height: 1.4; padding: 8px 12px; border-radius: 8px; margin-bottom: 6px; }
         .msg.ai { background: #1e1b4b; border-right: 3px solid #6366f1; color: #cbd5e1; }
@@ -94,6 +108,7 @@
         @media (min-width: 769px) {
             body { flex-direction: row; }
             .map-viewport { height: 100%; flex: 1; }
+            .withdraw-btn-container { bottom: 20px; left: auto; right: 340px; }
             .bottom-panel { width: 320px; height: 100%; border-top: none; border-right: 2px solid #1e293b; }
             .isometric-scene { transform: rotateX(55deg) rotateZ(-45deg) scale(0.75); }
         }
@@ -141,10 +156,20 @@
         </div>
     </div>
 
+    <div class="withdraw-btn-container">
+        <button class="withdraw-btn" onclick="alert('جاري إعداد طلب سحب آمن للإيرادات...')">
+            <i class="fas fa-shield-alt"></i> طلب سحب آمن
+        </button>
+    </div>
+
     <div class="bottom-panel">
         <div class="panel-header-row">
-            <div class="sidebar-title"><i class="fas fa-crown"></i> منظومة الممالك السحابية</div>
-            <div class="treasury-row"><span>الخزينة:</span><span style="color:#6fda44;">$5,680.00</span></div>
+            <div class="sidebar-title"><i class="fas fa-wallet"></i> إحصائيات الخزينة والعملة</div>
+        </div>
+
+        <div class="stats-container">
+            <div class="treasury-row"><span>الرصيد المتاح</span><span style="color:#6fda44;">$5,680.00</span></div>
+            <div class="treasury-row"><span>العوائد المعلقة</span><span style="color:#ffb800;">$1,420.00</span></div>
         </div>
         
         <div class="ai-chat-box">
@@ -165,104 +190,8 @@
         
         const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-        // جلب الإحداثيات المحفوظة من السحاب
+        // جلب الإحداثيات المحفوظة من السحاب فور التشغيل
         async function loadPositions() {
             try {
                 let { data } = await _supabase.from('castles').select('*');
                 if (data) {
-                    data.forEach(item => {
-                        const el = document.querySelector(`[data-id="${item.castle_id}"]`);
-                        if (el) {
-                            el.style.left = item.left_position + '%';
-                            el.style.top = item.top_position + '%';
-                        }
-                    });
-                }
-            } catch(e) { console.log("خطأ تحميل سحابي:", e); }
-        }
-        window.addEventListener('DOMContentLoaded', loadPositions);
-
-        async function savePosition(id, top, left) {
-            try {
-                await _supabase.from('castles').upsert({ castle_id: id, top_position: top, left_position: left });
-            } catch(e) { console.log("خطأ حفظ سحابي:", e); }
-        }
-
-        // ================= سكريبت سحب وإفلات تفاعلي موزون بدقة =================
-        const nodes = document.querySelectorAll('.castle-node');
-        nodes.forEach(node => {
-            let active = false;
-            let currentX, currentY, initialX, initialY;
-            let xOffset = 0, yOffset = 0;
-
-            node.addEventListener('touchstart', dragStart, {passive: false});
-            window.addEventListener('touchend', dragEnd, {passive: false});
-            window.addEventListener('touchmove', dragMove, {passive: false});
-
-            node.addEventListener('mousedown', dragStart);
-            window.addEventListener('mouseup', dragEnd);
-            window.addEventListener('mousemove', dragMove);
-
-            function dragStart(e) {
-                const parentRect = node.parentElement.getBoundingClientRect();
-                const nodeRect = node.getBoundingClientRect();
-                
-                xOffset = ((nodeRect.left - parentRect.left) / parentRect.width) * 100;
-                yOffset = ((nodeRect.top - parentRect.top) / parentRect.height) * 100;
-
-                if (e.type === 'touchstart') {
-                    initialX = e.touches[0].clientX;
-                    initialY = e.touches[0].clientY;
-                } else {
-                    initialX = e.clientX;
-                    initialY = e.clientY;
-                }
-                if (e.target.closest('.castle-node')) active = true;
-            }
-
-            function dragMove(e) {
-                if (!active) return;
-                e.preventDefault();
-
-                if (e.type === 'touchmove') {
-                    currentX = e.touches[0].clientX - initialX;
-                    currentY = e.touches[0].clientY - initialY;
-                } else {
-                    currentX = e.clientX - initialX;
-                    currentY = e.clientY - initialY;
-                }
-
-                const parentRect = node.parentElement.getBoundingClientRect();
-                
-                // موازنة الحركة لتقليل انحراف المنظور الأيزومتري ثلاثي الأبعاد
-                let newLeft = xOffset + (currentX / parentRect.width) * 130; 
-                let newTop = yOffset + (currentY / parentRect.height) * 130;
-
-                // حدود صارمة لمنع خروج القلاع من الساحة
-                if(newLeft < 1) newLeft = 1; if(newLeft > 88) newLeft = 88;
-                if(newTop < 1) newTop = 1; if(newTop > 88) newTop = 88;
-
-                node.style.left = newLeft + '%';
-                node.style.top = newTop + '%';
-            }
-
-            function dragEnd() {
-                if (!active) return;
-                active = false;
-                savePosition(node.getAttribute('data-id'), parseFloat(node.style.top), parseFloat(node.style.left));
-            }
-        });
-
-        // تشغيل الشات التجريبي المحول مؤقتاً
-        document.getElementById('sendBtn').addEventListener('click', () => {
-            const input = document.getElementById('userInput');
-            const query = input.value.trim();
-            if(!query) return;
-            const container = document.getElementById('chatContainer');
-            const uBox = document.createElement('div'); uBox.className = 'msg user'; uBox.innerText = query;
-            container.appendChild(uBox); input.value = '';
-            container.scrollTop = container.scrollHeight;
-        });
-    </script>
-</body>
-</html>
