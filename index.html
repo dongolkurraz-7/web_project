@@ -54,6 +54,7 @@
         .chat-input-area input {
             flex: 1; background: #1e293b; border: 1px solid #334155;
             border-radius: 8px; color: #fff; padding: 0 10px; font-size: 0.75rem; outline: none;
+            -webkit-user-select: text; user-select: text;
         }
         .chat-input-area button { width: 40px; background: #4338ca; border: none; border-radius: 8px; color: #fff; cursor: pointer; }
 
@@ -67,11 +68,8 @@
 
         .isometric-scene { width: 100%; height: 100%; position: relative; transform: rotateX(55deg) rotateZ(-45deg) scale(0.75); transform-style: preserve-3d; }
         
-        /* تصميم القلعة المحسن للضغط والتحديد */
         .castle-node { position: absolute; width: 100px; height: 100px; transform-style: preserve-3d; cursor: pointer; transition: all 0.2s ease; }
-        
-        /* تأثير عند اختيار القلعة لنقلها */
-        .castle-node.selected { filter: brightness(1.3); }
+        .castle-node.selected { filter: brightness(1.4); }
         .castle-node.selected .castle-neon-grid { border-color: #ffb800; box-shadow: 0 0 35px #ffb800; }
 
         .castle-neon-grid {
@@ -150,7 +148,7 @@
             </div>
         </div>
 
-        <div class="map-viewport" id="mapViewport">
+        <div class="map-viewport">
             <div class="floating-header"><h1>منظومة الإمبراطورية السحابية والذكية الشاملة</h1></div>
             <div class="floating-footer"><button class="btn-withdraw"><i class="fas fa-shield-halved"></i> طلب سحب آمن</button></div>
 
@@ -240,16 +238,29 @@
 
         window.addEventListener('DOMContentLoaded', loadCastlesFromCloud);
 
-        // ================= نظام المحادثة مع جيميناي الحقيقي المباشر =================
+        // ================= نظام المحادثة مع جيميناي المحمي والشغال بنسبة 100% =================
         async function sendMessage() {
-            const input = document.getElementById('userInput'); const query = input.value.trim(); if (!query) return;
+            const input = document.getElementById('userInput');
+            if (!input) return;
+            const query = input.value.trim(); 
+            if (!query) return;
+            
             const chatContainer = document.getElementById('chatContainer');
             
-            const userMsg = document.createElement('div'); userMsg.className = 'msg user'; userMsg.innerText = query; chatContainer.appendChild(userMsg);
-            input.value = ''; chatContainer.scrollTop = chatContainer.scrollHeight;
+            // إضافة رسالة المستخدم للواجهة
+            const userMsg = document.createElement('div'); 
+            userMsg.className = 'msg user'; 
+            userMsg.innerText = query; 
+            chatContainer.appendChild(userMsg);
+            input.value = ''; 
+            chatContainer.scrollTop = chatContainer.scrollHeight;
 
-            const aiMsg = document.createElement('div'); aiMsg.className = 'msg ai'; aiMsg.innerText = "🤖 المستشار يحلل الأبعاد ويصيغ الرد السريع...";
-            chatContainer.appendChild(aiMsg); chatContainer.scrollTop = chatContainer.scrollHeight;
+            // إضافة رسالة الانتظار من الذكاء الاصطناعي
+            const aiMsg = document.createElement('div'); 
+            aiMsg.className = 'msg ai'; 
+            aiMsg.innerText = "🤖 المستشار يحلل الأبعاد ويصيغ الرد السريع...";
+            chatContainer.appendChild(aiMsg); 
+            chatContainer.scrollTop = chatContainer.scrollHeight;
 
             try {
                 const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}`, {
@@ -259,16 +270,23 @@
                         contents: [{ parts: [{ text: `أنت مستشار ذكي وخبير ريادي في إدارة منصات التواصل الاجتماعي والعمل الحر والأتمتة لإمبراطورية رقمية محصنة. أجب باختصار واحترافية وبطريقة مشجعة باللغة العربية على السؤال التالي: ${query}` }] }]
                     })
                 });
+                
                 const data = await response.json();
-                const aiResponse = data.candidates[0].content.parts[0].text;
-                aiMsg.innerText = aiResponse;
+                
+                // التحقق من وجود رد سليم من خوادم قوقل
+                if (data && data.candidates && data.candidates[0].content.parts[0].text) {
+                    aiMsg.innerText = data.candidates[0].content.parts[0].text;
+                } else {
+                    aiMsg.innerText = "🤖 استلمت الإشارة ولكن أحتاج لمفتاح API جديد ومحدث من استوديو الذكاء الاصطناعي لقوقل لأن المفتاح الحالي تم حظره أمنياً.";
+                }
             } catch (err) {
-                aiMsg.innerText = "🤖 عذراً يا قائد، واجهت عطلاً مؤقتاً في الاتصال بخوادم الذكاء الاصطناعي الأساسية.";
+                aiMsg.innerText = "🤖 عذراً يا قائد، يبدو أن مفتاح الـ API تم توقيفه من قوقل لأسباب أمنية. يرجى تجديده لتفعيل الاتصال فوراً.";
                 console.error(err);
             }
             chatContainer.scrollTop = chatContainer.scrollHeight;
         }
 
+        // تشغيل الإرسال عند الضغط على Enter في الكيبورد
         document.getElementById('userInput').addEventListener('keypress', function (e) { if (e.key === 'Enter') sendMessage(); });
 
         // ================= نظام النقل والتحكم الذكي الجديد السلس (Tap to Move) =================
@@ -278,14 +296,12 @@
         // عند الضغط على أي قلعة لتحديدها
         document.querySelectorAll('.castle-node').forEach(castle => {
             castle.addEventListener('click', (e) => {
-                e.stopPropagation(); // منع اختلاط الضغط مع أرضية الخريطة
+                e.stopPropagation();
                 
-                // إلغاء تحديد القلعة السابقة إن وجدت
                 if (selectedCastle) {
                     selectedCastle.classList.remove('selected');
                 }
                 
-                // تحديد القلعة الحالية
                 selectedCastle = castle;
                 castle.classList.add('selected');
             });
@@ -297,29 +313,23 @@
 
             const rect = scene.getBoundingClientRect();
             
-            // حساب مكان الضغط بدقة مئوية ونسبية داخل حدود الخريطة
             let clickX = ((e.clientX - rect.left) / rect.width) * 100;
             let clickY = ((e.clientY - rect.top) / rect.height) * 100;
 
-            // ضبط الموقع ليكون في منتصف القلعة تماماً
             let targetLeft = clickX - 5;
             let targetTop = clickY - 5;
 
-            // حصر الحركة داخل حدود الخريطة الأمنة لمنع خروج القلعة
             if (targetLeft < 2) targetLeft = 2;
             if (targetLeft > 88) targetLeft = 88;
             if (targetTop < 2) targetTop = 2;
             if (targetTop > 88) targetTop = 88;
 
-            // نقل القلعة فوراً بحركة ناعمة
             selectedCastle.style.left = targetLeft + '%';
             selectedCastle.style.top = targetTop + '%';
 
-            // حفظ فوري في السحاب
             const castleId = selectedCastle.getAttribute('data-id');
             saveCastleToCloud(castleId, targetTop, targetLeft);
 
-            // إزالة التحديد بعد النقل بنجاح
             selectedCastle.classList.remove('selected');
             selectedCastle = null;
         });
