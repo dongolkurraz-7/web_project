@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>إمبراطورية الممالك السحابية</title>
+    <title>إمبراطورية الممالك السحابية - نظام السحب</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
@@ -30,30 +30,24 @@
             background-size: 40px 40px; overflow: hidden;
         }
 
-        /* مشهد أيزومتري ثابت وموزون */
         .isometric-scene { 
             width: 100%; height: 100%; position: relative; 
             transform: rotateX(55deg) rotateZ(-45deg) scale(0.6); 
             transform-style: preserve-3d;
         }
         
-        /* القلاع ككتلة واحدة منسجمة لمنع التفكك */
+        /* القلاع ككتلة واحدة منسجمة */
         .castle-node { 
             position: absolute; width: 90px; height: 90px; transform-style: preserve-3d; 
             cursor: grab; will-change: top, left; z-index: 10;
         }
         
-        /* تأثير تجربة المستخدم اللمسية عند السحب */
-        .castle-node.dragging { 
-            z-index: 1000 !important;
-        }
+        .castle-node.dragging { z-index: 1000 !important; }
         .castle-node.dragging .castle-neon-grid {
             transform: translateZ(15px);
             box-shadow: 0 25px 30px rgba(0,0,0,0.7), 0 0 25px var(--accent-color);
         }
-        .castle-node.dragging .castle-3d-structure {
-            transform: rotateZ(45deg) rotateX(-55deg) translateY(-32px); /* تتبع الحركة بارتفاع طفيف */
-        }
+        .castle-node.dragging .castle-3d-structure { transform: rotateZ(45deg) rotateX(-55deg) translateY(-32px); }
 
         .castle-neon-grid {
             position: absolute; width: 100%; height: 100%; border: 2.5px solid var(--accent-color);
@@ -62,7 +56,6 @@
             transition: transform 0.2s, box-shadow 0.2s;
         }
 
-        /* الحفاظ على المنظور العكسي للأبراج داخل نفس الكتلة */
         .castle-3d-structure { 
             position: absolute; width: 45px; height: 45px; top: 22px; left: 22px; 
             transform: rotateZ(45deg) rotateX(-55deg) translateY(-22px); 
@@ -78,7 +71,7 @@
         }
         .platform-badge span { font-size: 0.75rem; font-weight: 700; color: #fff; margin-right: 5px; }
 
-        /* توازن توزيع الممالك على شاشات الجوال */
+        /* توازن توزيع الممالك */
         .c-youtube   { --accent-color: #ef4444; top: 12%; left: 15%; }
         .c-tiktok    { --accent-color: #06b6d4; top: 12%; left: 60%; }
         .c-insta     { --accent-color: #ec4899; top: 40%; left: 12%; }
@@ -87,18 +80,31 @@
         .c-linkedin  { --accent-color: #0284c7; top: 68%; left: 20%; }
         .c-upwork    { --accent-color: #22c55e; top: 68%; left: 60%; }
 
-        /* ================= لوحة التحكم السفلية المحدثة والنظيفة ================= */
+        /* زر طلب سحب آمن الطافي */
+        .withdraw-btn-container {
+            position: absolute; bottom: 44%; left: 15px; z-index: 90;
+        }
+        .withdraw-btn {
+            background: linear-gradient(135deg, #dc2626, #991b1b); color: white;
+            border: 1px solid #ef4444; padding: 10px 18px; border-radius: 25px; font-weight: bold;
+            font-size: 0.8rem; cursor: pointer; display: flex; align-items: center; gap: 6px;
+            box-shadow: 0 4px 15px rgba(220, 38, 38, 0.4);
+        }
+
+        /* ================= لوحة التحكم السفلية الكاملة ================= */
         .bottom-panel {
-            width: 100%; height: 38%; background: #0a0f1e; border-top: 2px solid #1e293b;
-            padding: 12px; display: flex; flex-direction: column; gap: 8px; z-index: 50;
+            width: 100%; height: 42%; background: #0a0f1e; border-top: 2px solid #1e293b;
+            padding: 12px; display: flex; flex-direction: column; gap: 6px; z-index: 50;
             box-shadow: 0 -5px 20px rgba(0,0,0,0.5);
         }
 
         .panel-header-row { display: flex; justify-content: space-between; align-items: center; }
         .sidebar-title { font-size: 0.85rem; font-weight: 900; color: #ffb800; display: flex; align-items: center; gap: 6px; }
-        .treasury-row { background: #111827; border: 1px solid #1e293b; padding: 6px 14px; border-radius: 8px; display: flex; gap: 8px; font-size: 0.8rem; font-weight: bold; }
+        
+        .stats-grid { display: flex; gap: 8px; width: 100%; }
+        .treasury-row { flex: 1; background: #111827; border: 1px solid #1e293b; padding: 6px 10px; border-radius: 8px; display: flex; justify-content: space-between; align-items: center; font-size: 0.75rem; font-weight: bold; }
 
-        .ai-chat-box { flex: 1; background: #090d16; border: 1px solid #312e81; border-radius: 12px; padding: 10px; display: flex; flex-direction: column; }
+        .ai-chat-box { flex: 1; background: #090d16; border: 1px solid #312e81; border-radius: 12px; padding: 8px; display: flex; flex-direction: column; }
         .chat-messages { flex: 1; overflow-y: auto; padding-bottom: 5px; }
         .msg { font-size: 0.75rem; line-height: 1.4; padding: 8px 12px; border-radius: 8px; margin-bottom: 6px; }
         .msg.ai { background: #1e1b4b; border-right: 3px solid #6366f1; color: #cbd5e1; }
@@ -108,10 +114,30 @@
         .chat-input-area input { flex: 1; background: #1e293b; border: 1px solid #334155; border-radius: 6px; color: #fff; padding: 0 10px; font-size: 0.8rem; outline: none; }
         .chat-input-area button { width: 40px; background: #4338ca; border: none; border-radius: 6px; color: #fff; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 0.9rem; }
 
+        /* ================= نافذة السحب المنبثقة (Modal) ================= */
+        .modal-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(5, 7, 15, 0.85); backdrop-filter: blur(5px);
+            display: none; justify-content: center; align-items: center; z-index: 2000;
+        }
+        .modal-content {
+            background: #0f172a; border: 2px solid #312e81; border-radius: 16px;
+            width: 90%; max-width: 400px; padding: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.7);
+            display: flex; flex-direction: column; gap: 14px;
+        }
+        .modal-title { font-size: 1rem; font-weight: 900; color: #ffb800; display: flex; align-items: center; gap: 8px; }
+        .modal-input { width: 100%; background: #1e293b; border: 1px solid #475569; border-radius: 8px; color: #fff; padding: 10px; font-size: 0.85rem; outline: none; touch-action: auto; }
+        .modal-select { width: 100%; background: #1e293b; border: 1px solid #475569; border-radius: 8px; color: #fff; padding: 10px; font-size: 0.85rem; outline: none; }
+        .modal-actions { display: flex; gap: 8px; justify-content: flex-end; margin-top: 6px; }
+        .btn-confirm { background: #22c55e; color: white; border: none; padding: 8px 16px; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 0.8rem; }
+        .btn-cancel { background: #475569; color: white; border: none; padding: 8px 16px; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 0.8rem; }
+
         @media (min-width: 769px) {
             body { flex-direction: row; }
             .map-viewport { height: 100%; flex: 1; }
+            .withdraw-btn-container { bottom: 20px; left: auto; right: 340px; }
             .bottom-panel { width: 320px; height: 100%; border-top: none; border-right: 2px solid #1e293b; }
+            .stats-grid { flex-direction: column; }
             .isometric-scene { transform: rotateX(55deg) rotateZ(-45deg) scale(0.75); }
         }
     </style>
@@ -158,15 +184,25 @@
         </div>
     </div>
 
+    <div class="withdraw-btn-container">
+        <button class="withdraw-btn" id="openWithdrawModal">
+            <i class="fas fa-shield-alt"></i> طلب سحب آمن
+        </button>
+    </div>
+
     <div class="bottom-panel">
         <div class="panel-header-row">
-            <div class="sidebar-title"><i class="fas fa-crown"></i> منظومة M_الذكية</div>
-            <div class="treasury-row"><span>الخزينة:</span><span style="color:#6fda44;">$5,680.00</span></div>
+            <div class="sidebar-title"><i class="fas fa-wallet"></i> إحصائيات الخزينة والعملة</div>
+        </div>
+
+        <div class="stats-grid">
+            <div class="treasury-row"><span>الرصيد المتاح:</span><span style="color:#6fda44;" id="availableBalance">$5,680.00</span></div>
+            <div class="treasury-row"><span>العوائد المعلقة:</span><span style="color:#ffb800;">$1,420.00</span></div>
         </div>
         
         <div class="ai-chat-box">
             <div class="chat-messages" id="chatContainer">
-                <div class="msg ai">👑 أهلاً بك يا قائد في غرفة التحكم! المنظومة جاهزة بالكامل ومحسّنة للمس اللمس الحركي.</div>
+                <div class="msg ai">👑 أهلاً بك يا قائد في غرفة التحكم! نظام الإيرادات والسحب الآمن نشط الآن.</div>
             </div>
             <div class="chat-input-area">
                 <input type="text" id="userInput" placeholder="اكتب رسالتك للمنظومة...">
@@ -175,8 +211,28 @@
         </div>
     </div>
 
+    <div class="modal-overlay" id="withdrawModal">
+        <div class="modal-content">
+            <div class="modal-title"><i class="fas fa-vault"></i> بوابة السحب الآمن للرصيد</div>
+            <p style="font-size:0.75rem; color:#94a3b8;">الرصيد المتاح للسحب هو $5,680.00. يرجى ملء البيانات بدقة.</p>
+            
+            <select class="modal-select" id="walletType">
+                <option value="payeer">محفظة الباير (Payeer)</option>
+                <option value="usdt">USDT (TRC-20)</option>
+                <option value="paypal">حساب باي بال (PayPal)</option>
+            </select>
+
+            <input type="text" class="modal-input" id="walletAddress" placeholder="أدخل رقم الحساب أو عنوان المحفظة هنا...">
+
+            <div class="modal-actions">
+                <button class="btn-cancel" id="closeWithdrawModal">إلغاء</button>
+                <button class="btn-confirm" id="confirmWithdraw">تأكيد طلب السحب</button>
+            </div>
+        </div>
+    </div>
+
     <script>
-        // إعدادات ومزامنة Supabase لقواعد البيانات العامة
+        // إعدادات ومزامنة Supabase
         const SUPABASE_URL = "https://pujxqcfzljzxiijgfbtw.supabase.co";
         const SUPABASE_ANON_KEY = "EyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB1anhxY2Z6bGp6eGlpamdmYnR3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODI3NDI2OTksImV4cCI6MjA5ODMxODY5OX0.XPrxnm6PDfBFDDXmKInHVqwvUZ6Aa2vGxWW9peu4jKw";
         
@@ -204,7 +260,7 @@
             } catch(e) { console.log("خطأ حفظ سحابي:", e); }
         }
 
-        // ================= سكريبت حركي متطور يعتمد النسب المئوية ويمنع فك الأبراج =================
+        // ================= سكريبت التحكم الحركي الكامل بالقلاع =================
         const nodes = document.querySelectorAll('.castle-node');
         nodes.forEach(node => {
             let active = false;
@@ -214,69 +270,68 @@
             const start = (e) => {
                 const parentRect = node.parentElement.getBoundingClientRect();
                 const nodeRect = node.getBoundingClientRect();
-                
                 xOffset = ((nodeRect.left - parentRect.left) / parentRect.width) * 100;
                 yOffset = ((nodeRect.top - parentRect.top) / parentRect.height) * 100;
 
                 const clientX = e.type.includes('touch') ? e.touches[0].clientX : e.clientX;
                 const clientY = e.type.includes('touch') ? e.touches[0].clientY : e.clientY;
+                initialX = clientX; initialY = clientY;
                 
-                initialX = clientX;
-                initialY = clientY;
-                
-                if (e.target.closest('.castle-node')) {
-                    active = true;
-                    node.classList.add('dragging');
-                }
+                if (e.target.closest('.castle-node')) { active = true; node.classList.add('dragging'); }
             };
 
             const move = (e) => {
                 if (!active) return;
                 e.preventDefault();
-
                 const clientX = e.type.includes('touch') ? e.touches[0].clientX : e.clientX;
                 const clientY = e.type.includes('touch') ? e.touches[0].clientY : e.clientY;
-
-                currentX = clientX - initialX;
-                currentY = clientY - initialY;
+                currentX = clientX - initialX; currentY = clientY - initialY;
 
                 const parentRect = node.parentElement.getBoundingClientRect();
-                
-                // الحسابات النسبية الدقيقة لمنع انحراف الأبراج
                 let newLeft = xOffset + (currentX / parentRect.width) * 130; 
                 let newTop = yOffset + (currentY / parentRect.height) * 130;
 
                 if(newLeft < 1) newLeft = 1; if(newLeft > 88) newLeft = 88;
                 if(newTop < 1) newTop = 1; if(newTop > 88) newTop = 88;
 
-                node.style.left = newLeft + '%';
-                node.style.top = newTop + '%';
+                node.style.left = newLeft + '%'; node.style.top = newTop + '%';
             };
 
             const end = () => {
                 if (!active) return;
-                active = false;
-                node.classList.remove('dragging');
+                active = false; node.classList.remove('dragging');
                 savePosition(node.getAttribute('data-id'), parseFloat(node.style.top), parseFloat(node.style.left));
             };
 
             node.addEventListener('touchstart', start, {passive: false});
             window.addEventListener('touchmove', move, {passive: false});
             window.addEventListener('touchend', end);
-
             node.addEventListener('mousedown', start);
             window.addEventListener('mousemove', move);
             window.addEventListener('mouseup', end);
         });
 
+        // ================= سكريبت التحكم بالنافذة المنبثقة (Modal) =================
+        const modal = document.getElementById('withdrawModal');
+        document.getElementById('openWithdrawModal').addEventListener('click', () => modal.style.display = 'flex');
+        document.getElementById('closeWithdrawModal').addEventListener('click', () => modal.style.display = 'none');
+        
+        document.getElementById('confirmWithdraw').addEventListener('click', () => {
+            const address = document.getElementById('walletAddress').value.trim();
+            const type = document.getElementById('walletType').value;
+            if(!address) { alert('الرجاء إدخال عنوان المحفظة أولاً يا قائد!'); return; }
+            
+            alert(`تم رفع طلب سحب آمن بقيمة $5,680.00 إلى ${type} للعنوان: ${address}\nالطلب قيد المراجعة الفورية!`);
+            modal.style.display = 'none';
+            document.getElementById('walletAddress').value = '';
+        });
+
+        // الشات التجريبي النظيف
         document.getElementById('sendBtn').addEventListener('click', () => {
-            const input = document.getElementById('userInput');
-            const query = input.value.trim();
-            if(!query) return;
+            const input = document.getElementById('userInput'); const query = input.value.trim(); if(!query) return;
             const container = document.getElementById('chatContainer');
             const uBox = document.createElement('div'); uBox.className = 'msg user'; uBox.innerText = query;
-            container.appendChild(uBox); input.value = '';
-            container.scrollTop = container.scrollHeight;
+            container.appendChild(uBox); input.value = ''; container.scrollTop = container.scrollHeight;
         });
     </script>
 </body>
