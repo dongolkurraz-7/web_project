@@ -7,7 +7,6 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <!-- airspace Three.js -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 
     <style>
@@ -265,7 +264,6 @@
         </div>
     </div>
 
-    <!-- المودالات المخصصة -->
     <div class="modal-overlay" id="withdrawModal">
         <div class="modal-content">
             <div class="success-screen" id="successScreen" style="display:none; text-align:center;"><i class="fas fa-check-circle" style="font-size:3rem; color:#22c55e;"></i><h3 style="color:#ffb800; font-weight:900;">تم إرسال الطلب بنجاح!</h3><button class="card-action-btn" id="closeSuccessBtn" style="background:#4f46e5; margin-top:10px;">موافق</button></div>
@@ -339,11 +337,14 @@
             }, 3500);
         }
 
+        // ================= دالة واجهة الإمبراطورية المحدثة لإجبار الـ 3D على الظهور فوراً =================
         function launchEmpireUI(user, customName) {
             leaderName = customName || localStorage.getItem('m_ai_leader') || user.email.split('@')[0];
             localStorage.setItem('m_ai_leader', leaderName);
             
             initAudio();
+            
+            // 1. إظهار الحاويات أولاً لتأخذ أبعاد الشاشة الصحيحة
             document.getElementById('authOverlay').style.display = 'none';
             document.getElementById('viewport').style.display = 'block';
             document.getElementById('withdrawBtnDiv').style.display = 'block';
@@ -351,8 +352,17 @@
 
             document.getElementById('welcomeChatMsg').innerText = `👑 أهلاً بك سيدي القائد ${leaderName}! المحرك 3D ومصفوفة القلاع تعمل بكامل طاقتها الرقمية.`;
             
+            // 2. تشغيل المحرك وبناء القلاع الـ 3D
             init3DEngine();
             build3DCastles();
+            
+            // 3. إجبار الـ Renderer على مطابقة الأبعاد الجديدة فوراً لمنع الشاشة السوداء
+            if (renderer && camera) {
+                const container = document.getElementById('webgl-canvas');
+                renderer.setSize(container.clientWidth, container.clientHeight);
+                camera.aspect = container.clientWidth / container.clientHeight;
+                camera.updateProjectionMatrix();
+            }
             
             updateMonitorUI(activeCastleId);
             updateXPBar();
@@ -362,7 +372,7 @@
             animateVFX();
         }
 
-        // ================= دالة تسجيل الدخول والدخول المُصلحة =================
+        // ================= دالة تسجيل الدخول والدخول السحابي المُصلحة =================
         async function handleAuthSubmit() {
             const email = document.getElementById('authEmail').value.trim();
             const password = document.getElementById('authPassword').value.trim();
@@ -409,6 +419,9 @@
 
         function init3DEngine() {
             const container = document.getElementById('webgl-canvas');
+            // تأكيد تصفير الحاوية لمنع تكرار الـ Canvases عند عمل إعادة استدعاء
+            container.innerHTML = ''; 
+            
             scene = new THREE.Scene();
             scene.background = new THREE.Color('#03050a');
             scene.fog = new THREE.FogExp2('#03050a', 0.07);
@@ -440,6 +453,10 @@
 
         function build3DCastles() {
             const labelsLayer = document.getElementById('labelsLayer');
+            
+            // تنظيف أي شارات قديمة لمنع تكرارها على الواجهة
+            const oldLabels = labelsLayer.querySelectorAll('.castle-label');
+            oldLabels.forEach(el => el.remove());
 
             Object.keys(castlesData).forEach(id => {
                 const data = castlesData[id];
@@ -526,9 +543,11 @@
 
         function onWindowResize() {
             const container = document.getElementById('webgl-canvas');
-            camera.aspect = container.clientWidth / container.clientHeight;
-            camera.updateProjectionMatrix();
-            renderer.setSize(container.clientWidth, container.clientHeight);
+            if (camera && renderer) {
+                camera.aspect = container.clientWidth / container.clientHeight;
+                camera.updateProjectionMatrix();
+                renderer.setSize(container.clientWidth, container.clientHeight);
+            }
         }
 
         function switchAuthTab(mode) {
