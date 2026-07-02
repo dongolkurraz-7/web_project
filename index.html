@@ -26,11 +26,6 @@
         }
 
         #vfx-canvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 1; }
-        
-        #webgl-canvas { 
-            position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 2; 
-            touch-action: none; 
-        }
 
         /* ================= شاشة تسجيل الدخول ================= */
         .auth-overlay {
@@ -61,9 +56,16 @@
         }
         .toast-notification.show { transform: translateX(0); }
 
-        /* ================= ساحة الخريطة الحقيقية ================= */
+        /* ================= ساحة الخريطة الحقيقية المعدلة ================= */
         .map-viewport {
-            flex: 1; width: 100%; background-color: #03050a; position: relative; overflow: hidden; z-index: 3; display: none;
+            flex: 1; /* تأخذ كامل المساحة المتبقية فوق اللوحة السفلية */
+            width: 100%; background-color: #03050a; position: relative; overflow: hidden; z-index: 3; display: none;
+        }
+
+        /* تعديل جوهري لضمان تمدد الـ canvas ومحاذاة المحرك ثلاثي الأبعاد */
+        #webgl-canvas { 
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 2; 
+            touch-action: none; background: #03050a;
         }
 
         .html-overlay-layer {
@@ -339,13 +341,16 @@
             }, 3500);
         }
 
-        // دالة مخصصة لإجبار الرندر وتحديث المقاسات في أي وقت
+        // دالة قوية تجبر محرك الـ WebGL على احتلال المساحة المتاحة للحاوية بالكامل
         function resizeThreeDToContainer() {
-            if (renderer && camera) {
-                const container = document.getElementById('webgl-canvas');
-                if (container && container.clientWidth > 0) {
-                    renderer.setSize(container.clientWidth, container.clientHeight);
-                    camera.aspect = container.clientWidth / container.clientHeight;
+            const container = document.getElementById('webgl-canvas');
+            if (renderer && camera && container) {
+                const width = container.clientWidth;
+                const height = container.clientHeight;
+                
+                if (width > 0 && height > 0) {
+                    renderer.setSize(width, height);
+                    camera.aspect = width / height;
                     camera.updateProjectionMatrix();
                 }
             }
@@ -357,7 +362,7 @@
             
             initAudio();
             
-            // إظهار الحاويات في الـ DOM أولاً
+            // ترتيب العرض الحرج لضمان قراءة الأبعاد بصورة صحيحة
             document.getElementById('authOverlay').style.display = 'none';
             document.getElementById('viewport').style.display = 'block';
             document.getElementById('withdrawBtnDiv').style.display = 'block';
@@ -365,12 +370,12 @@
 
             document.getElementById('welcomeChatMsg').innerText = `👑 أهلاً بك سيدي القائد ${leaderName}! المحرك 3D ومصفوفة القلاع تعمل بكامل طاقتها الرقمية.`;
             
-            // تهيئة وبناء القلاع
+            // بناء محرك الـ 3D بعد فتح الشاشات
             init3DEngine();
             build3DCastles();
             
-            // فرض الحجم المناسب فوراً بعد البناء
-            setTimeout(resizeThreeDToContainer, 100);
+            // فرض حساب الأبعاد مباشرة لقتل المساحة السوداء
+            resizeThreeDToContainer();
             
             updateMonitorUI(activeCastleId);
             updateXPBar();
@@ -437,7 +442,7 @@
             camera.lookAt(0, 0, 0);
 
             renderer = new THREE.WebGLRenderer({ antialias: true });
-            renderer.setSize(container.clientWidth || window.innerWidth, container.clientHeight || (window.innerHeight * 0.55));
+            renderer.setSize(container.clientWidth || window.innerWidth, container.clientHeight || window.innerHeight);
             renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
             renderer.shadowMap.enabled = true;
             container.appendChild(renderer.domElement);
@@ -454,7 +459,14 @@
             gridHelper.position.y = -0.01;
             scene.add(gridHelper);
 
-            window.addEventListener('resize', onWindowResize);
+            // استخدام مراقب التغير لتحديث الـ Canvas باستمرار عند تغير أبعاد شاشات الموبايل المتنوعة
+            if (window.ResizeObserver) {
+                const ro = new ResizeObserver(() => {
+                    resizeThreeDToContainer();
+                });
+                ro.observe(container);
+            }
+            window.addEventListener('resize', resizeThreeDToContainer);
         }
 
         function build3DCastles() {
@@ -516,6 +528,9 @@
         function animate3D() {
             requestAnimationFrame(animate3D);
 
+            const container = document.getElementById('webgl-canvas');
+            const viewHeight = container ? container.clientHeight : (window.innerHeight * 0.55);
+
             Object.keys(castle3DMeshes).forEach(id => {
                 const mesh = castle3DMeshes[id];
                 mesh.rotation.y += 0.005;
@@ -528,7 +543,7 @@
                     wp.project(camera);
 
                     const x = (wp.x * .5 + .5) * window.innerWidth;
-                    const y = (-(wp.y * .5) + .5) * (window.innerHeight * 0.55); // التوافق مع حجم الحاوية العلوية المتاحة للرسم
+                    const y = (-(wp.y * .5) + .5) * viewHeight; // التماشي التام والحيوي مع ارتفاع الـ Viewport المتبقي
 
                     data.domElement.style.left = `${x}px`;
                     data.domElement.style.top = `${y}px`;
@@ -538,10 +553,6 @@
             if (renderer && scene && camera) {
                 renderer.render(scene, camera);
             }
-        }
-
-        function onWindowResize() {
-            resizeThreeDToContainer();
         }
 
         function switchAuthTab(mode) {
@@ -767,8 +778,6 @@
             const { data: { session } } = await _supabase.auth.getSession();
             if (session && session.user) { 
                 launchEmpireUI(session.user, null); 
-                // تأكيد تشغيل الحساب والأبعاد فوراً للـ Auto-Login
-                setTimeout(resizeThreeDToContainer, 300);
             }
         }
     </script>
