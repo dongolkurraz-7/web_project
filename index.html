@@ -7,6 +7,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- airspace Three.js -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 
     <style>
@@ -264,6 +265,7 @@
         </div>
     </div>
 
+    <!-- المودالات المخصصة -->
     <div class="modal-overlay" id="withdrawModal">
         <div class="modal-content">
             <div class="success-screen" id="successScreen" style="display:none; text-align:center;"><i class="fas fa-check-circle" style="font-size:3rem; color:#22c55e;"></i><h3 style="color:#ffb800; font-weight:900;">تم إرسال الطلب بنجاح!</h3><button class="card-action-btn" id="closeSuccessBtn" style="background:#4f46e5; margin-top:10px;">موافق</button></div>
@@ -337,14 +339,25 @@
             }, 3500);
         }
 
-        // ================= دالة واجهة الإمبراطورية المحدثة لإجبار الـ 3D على الظهور فوراً =================
+        // دالة مخصصة لإجبار الرندر وتحديث المقاسات في أي وقت
+        function resizeThreeDToContainer() {
+            if (renderer && camera) {
+                const container = document.getElementById('webgl-canvas');
+                if (container && container.clientWidth > 0) {
+                    renderer.setSize(container.clientWidth, container.clientHeight);
+                    camera.aspect = container.clientWidth / container.clientHeight;
+                    camera.updateProjectionMatrix();
+                }
+            }
+        }
+
         function launchEmpireUI(user, customName) {
             leaderName = customName || localStorage.getItem('m_ai_leader') || user.email.split('@')[0];
             localStorage.setItem('m_ai_leader', leaderName);
             
             initAudio();
             
-            // 1. إظهار الحاويات أولاً لتأخذ أبعاد الشاشة الصحيحة
+            // إظهار الحاويات في الـ DOM أولاً
             document.getElementById('authOverlay').style.display = 'none';
             document.getElementById('viewport').style.display = 'block';
             document.getElementById('withdrawBtnDiv').style.display = 'block';
@@ -352,17 +365,12 @@
 
             document.getElementById('welcomeChatMsg').innerText = `👑 أهلاً بك سيدي القائد ${leaderName}! المحرك 3D ومصفوفة القلاع تعمل بكامل طاقتها الرقمية.`;
             
-            // 2. تشغيل المحرك وبناء القلاع الـ 3D
+            // تهيئة وبناء القلاع
             init3DEngine();
             build3DCastles();
             
-            // 3. إجبار الـ Renderer على مطابقة الأبعاد الجديدة فوراً لمنع الشاشة السوداء
-            if (renderer && camera) {
-                const container = document.getElementById('webgl-canvas');
-                renderer.setSize(container.clientWidth, container.clientHeight);
-                camera.aspect = container.clientWidth / container.clientHeight;
-                camera.updateProjectionMatrix();
-            }
+            // فرض الحجم المناسب فوراً بعد البناء
+            setTimeout(resizeThreeDToContainer, 100);
             
             updateMonitorUI(activeCastleId);
             updateXPBar();
@@ -372,7 +380,6 @@
             animateVFX();
         }
 
-        // ================= دالة تسجيل الدخول والدخول السحابي المُصلحة =================
         async function handleAuthSubmit() {
             const email = document.getElementById('authEmail').value.trim();
             const password = document.getElementById('authPassword').value.trim();
@@ -419,19 +426,18 @@
 
         function init3DEngine() {
             const container = document.getElementById('webgl-canvas');
-            // تأكيد تصفير الحاوية لمنع تكرار الـ Canvases عند عمل إعادة استدعاء
             container.innerHTML = ''; 
             
             scene = new THREE.Scene();
             scene.background = new THREE.Color('#03050a');
             scene.fog = new THREE.FogExp2('#03050a', 0.07);
 
-            camera = new THREE.PerspectiveCamera(45, container.clientWidth / container.clientHeight, 0.1, 1000);
+            camera = new THREE.PerspectiveCamera(45, container.clientWidth / container.clientHeight || 1, 0.1, 1000);
             camera.position.set(0, 8, 12);
             camera.lookAt(0, 0, 0);
 
             renderer = new THREE.WebGLRenderer({ antialias: true });
-            renderer.setSize(container.clientWidth, container.clientHeight);
+            renderer.setSize(container.clientWidth || window.innerWidth, container.clientHeight || (window.innerHeight * 0.55));
             renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
             renderer.shadowMap.enabled = true;
             container.appendChild(renderer.domElement);
@@ -453,8 +459,6 @@
 
         function build3DCastles() {
             const labelsLayer = document.getElementById('labelsLayer');
-            
-            // تنظيف أي شارات قديمة لمنع تكرارها على الواجهة
             const oldLabels = labelsLayer.querySelectorAll('.castle-label');
             oldLabels.forEach(el => el.remove());
 
@@ -467,18 +471,11 @@
                 castle3DMeshes[id] = castleGroup;
 
                 const stoneMaterial = new THREE.MeshStandardMaterial({
-                    color: '#27354a',
-                    roughness: 0.6,
-                    metalness: 0.2,
-                    flatShading: true
+                    color: '#27354a', roughness: 0.6, metalness: 0.2, flatShading: true
                 });
 
                 const roofMaterial = new THREE.MeshStandardMaterial({
-                    color: data.color,
-                    roughness: 0.3,
-                    metalness: 0.8,
-                    emissive: data.color,
-                    emissiveIntensity: 0.3
+                    color: data.color, roughness: 0.3, metalness: 0.8, emissive: data.color, emissiveIntensity: 0.3
                 });
 
                 const towerGeo = new THREE.CylinderGeometry(0.5, 0.6, 1.8, 8);
@@ -524,30 +521,27 @@
                 mesh.rotation.y += 0.005;
 
                 const data = castlesData[id];
-                if (data.domElement) {
+                if (data.domElement && camera && renderer) {
                     const wp = new THREE.Vector3();
                     mesh.getWorldPosition(wp);
                     wp.y += 2.5;
                     wp.project(camera);
 
                     const x = (wp.x * .5 + .5) * window.innerWidth;
-                    const y = (-(wp.y * .5) + .5) * window.innerHeight;
+                    const y = (-(wp.y * .5) + .5) * (window.innerHeight * 0.55); // التوافق مع حجم الحاوية العلوية المتاحة للرسم
 
                     data.domElement.style.left = `${x}px`;
                     data.domElement.style.top = `${y}px`;
                 }
             });
 
-            renderer.render(scene, camera);
+            if (renderer && scene && camera) {
+                renderer.render(scene, camera);
+            }
         }
 
         function onWindowResize() {
-            const container = document.getElementById('webgl-canvas');
-            if (camera && renderer) {
-                camera.aspect = container.clientWidth / container.clientHeight;
-                camera.updateProjectionMatrix();
-                renderer.setSize(container.clientWidth, container.clientHeight);
-            }
+            resizeThreeDToContainer();
         }
 
         function switchAuthTab(mode) {
@@ -771,7 +765,11 @@
         window.onload = async () => {
             loadProgress();
             const { data: { session } } = await _supabase.auth.getSession();
-            if (session && session.user) { launchEmpireUI(session.user, null); }
+            if (session && session.user) { 
+                launchEmpireUI(session.user, null); 
+                // تأكيد تشغيل الحساب والأبعاد فوراً للـ Auto-Login
+                setTimeout(resizeThreeDToContainer, 300);
+            }
         }
     </script>
 </body>
