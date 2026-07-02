@@ -7,7 +7,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <!-- استدعاء مكتبة Three.js للجرافيكس الحقيقي -->
+    <!-- airspace Three.js -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 
     <style>
@@ -18,7 +18,6 @@
             font-family: 'Tajawal', sans-serif; 
             -webkit-tap-highlight-color: transparent;
             user-select: none;
-            /* تم حذف touch-action من هنا لإصلاح اللمس والأزرار */
         }
 
         body { 
@@ -28,10 +27,9 @@
 
         #vfx-canvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 1; }
         
-        /* كانفاس الـ 3D الأساسي للجرافيكس القوي */
         #webgl-canvas { 
             position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 2; 
-            touch-action: none; /* تم نقلها هنا لتأمين التحكم بالـ 3D فقط دون تعطيل الواجهة */
+            touch-action: none; 
         }
 
         /* ================= شاشة تسجيل الدخول ================= */
@@ -68,7 +66,6 @@
             flex: 1; width: 100%; background-color: #03050a; position: relative; overflow: hidden; z-index: 3; display: none;
         }
 
-        /* حاويات الـ HTML العائمة فوق الـ 3D بدقة وتزامن */
         .html-overlay-layer {
             position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 4;
         }
@@ -85,7 +82,6 @@
         }
         .castle-label:hover .platform-badge { transform: scale(1.1); background: var(--accent-color); color: #000; }
 
-        /* أدوات التحكم العائمة */
         .floating-controls { position: absolute; top: 15px; left: 15px; z-index: 100; display: flex; gap: 8px; pointer-events: auto;}
         .control-btn { background: #0b1120; border: 1px solid #23225c; color: white; padding: 10px; border-radius: 50%; cursor: pointer; width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; }
         .logout-btn { background: #1e1b4b; border: 1px solid #dc2626; border-radius: 20px; color: #f87171; font-size: 0.75rem; padding: 0 12px; cursor: pointer; font-weight: bold; }
@@ -155,7 +151,6 @@
 
     <div id="toast-container"></div>
 
-    <!-- بوابة الحسابات السحابية -->
     <div class="auth-overlay" id="authOverlay">
         <div class="auth-box">
             <h2 style="color:#ffb800; margin-bottom:10px; font-weight:900;"><i class="fas fa-shield-alt"></i> تفعيل المنظومة 3D</h2>
@@ -174,15 +169,11 @@
         </div>
     </div>
 
-    <!-- كانفاس المؤثرات البصرية النيون الخلفية -->
     <canvas id="vfx-canvas"></canvas>
 
-    <!-- واجهة الخريطة والـ 3D Engine -->
     <div class="map-viewport" id="viewport">
-        <!-- كانفاس الرندرة ثلاثية الأبعاد للألعاب -->
         <div id="webgl-canvas"></div>
 
-        <!-- الطبقة السطحية للأزرار فوق الـ 3D -->
         <div class="html-overlay-layer" id="labelsLayer">
             <div class="floating-controls">
                 <button class="control-btn" id="toggleAudioBtn"><i class="fas fa-volume-mute"></i></button>
@@ -198,7 +189,6 @@
 
     <div class="withdraw-btn-container" id="withdrawBtnDiv"><button class="withdraw-btn" id="openWithdrawModal"><i class="fas fa-shield-alt"></i> طلب سحب آمن</button></div>
 
-    <!-- لوحة التحكم السفلية المتكاملة المدمجة -->
     <div class="bottom-panel" id="bottomPanel">
         <div class="leader-xp-bar-container">
             <span>الرتبة: <span id="leaderRank" style="color:#ffb800; font-weight:bold;">قائد مبتدئ</span></span>
@@ -372,9 +362,53 @@
             animateVFX();
         }
 
+        // ================= دالة تسجيل الدخول والدخول المُصلحة =================
+        async function handleAuthSubmit() {
+            const email = document.getElementById('authEmail').value.trim();
+            const password = document.getElementById('authPassword').value.trim();
+            const nameInput = document.getElementById('leaderNameInput').value.trim();
+            
+            if (!email || !password) { 
+                showNotification('الرجاء تعبئة الحقول المطلوبة.', 'fas fa-exclamation-triangle'); 
+                return; 
+            }
+
+            const btn = document.getElementById('startEngineBtn');
+            const originalText = btn.innerText;
+            btn.innerText = "جاري الاتصال بالمصفوفة...";
+            btn.disabled = true;
+
+            if (authMode === 'register') {
+                const { data, error } = await _supabase.auth.signUp({ email, password });
+                btn.innerText = originalText;
+                btn.disabled = false;
+                
+                if (error) { 
+                    showNotification(error.message, 'fas fa-bug'); 
+                    return; 
+                }
+                if (data.user) { 
+                    launchEmpireUI(data.user, nameInput || 'القائد'); 
+                    saveProgress(); 
+                }
+            } else {
+                const { data, error } = await _supabase.auth.signInWithPassword({ email, password });
+                btn.innerText = originalText;
+                btn.disabled = false;
+                
+                if (error) { 
+                    showNotification("فشل تسجيل الدخول: " + error.message, 'fas fa-lock-open'); 
+                    return; 
+                }
+                if (data.user) { 
+                    const savedName = localStorage.getItem('m_ai_leader') || email.split('@')[0];
+                    launchEmpireUI(data.user, savedName); 
+                }
+            }
+        }
+
         function init3DEngine() {
             const container = document.getElementById('webgl-canvas');
-            
             scene = new THREE.Scene();
             scene.background = new THREE.Color('#03050a');
             scene.fog = new THREE.FogExp2('#03050a', 0.07);
@@ -397,7 +431,7 @@
             dirLight.castShadow = true;
             scene.add(dirLight);
 
-            const gridHelper = new THREE.GridHelper(20, 20, '#4f46e5', #1e1b4b);
+            const gridHelper = new THREE.GridHelper(20, 20, '#4f46e5', '#1e1b4b');
             gridHelper.position.y = -0.01;
             scene.add(gridHelper);
 
@@ -502,23 +536,6 @@
             document.getElementById('loginTabBtn').classList.toggle('active', mode === 'login');
             document.getElementById('registerTabBtn').classList.toggle('active', mode === 'register');
             document.getElementById('leaderNameInput').style.display = mode === 'register' ? 'block' : 'none';
-        }
-
-        async function handleAuthSubmit() {
-            const email = document.getElementById('authEmail').value.trim();
-            const password = document.getElementById('authPassword').value.trim();
-            const nameInput = document.getElementById('leaderNameInput').value.trim();
-            if (!email || !password) { showNotification('الرجاء تعبئة الحقول المطلوبة.', 'fas fa-exclamation-triangle'); return; }
-
-            if (authMode === 'register') {
-                const { data, error } = await _supabase.auth.signUp({ email, password });
-                if (error) { alert(error.message); return; }
-                if (data.user) { launchEmpireUI(data.user, nameInput || 'القائد'); saveProgress(); }
-            } else {
-                const { data, error } = await _supabase.auth.signInWithPassword({ email, password });
-                if (error) { alert(error.message); return; }
-                if (data.user) { launchEmpireUI(data.user, null); }
-            }
         }
 
         async function handleLogout() {
