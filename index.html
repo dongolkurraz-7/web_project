@@ -7,6 +7,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- استدعاء مكتبة Three.js للجرافيكس الحقيقي -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 
     <style>
@@ -16,7 +17,8 @@
             margin: 0; padding: 0; box-sizing: border-box;
             font-family: 'Tajawal', sans-serif; 
             -webkit-tap-highlight-color: transparent;
-            touch-action: none; user-select: none;
+            user-select: none;
+            /* تم حذف touch-action من هنا لإصلاح اللمس والأزرار */
         }
 
         body { 
@@ -27,7 +29,10 @@
         #vfx-canvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 1; }
         
         /* كانفاس الـ 3D الأساسي للجرافيكس القوي */
-        #webgl-canvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 2; }
+        #webgl-canvas { 
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 2; 
+            touch-action: none; /* تم نقلها هنا لتأمين التحكم بالـ 3D فقط دون تعطيل الواجهة */
+        }
 
         /* ================= شاشة تسجيل الدخول ================= */
         .auth-overlay {
@@ -150,6 +155,7 @@
 
     <div id="toast-container"></div>
 
+    <!-- بوابة الحسابات السحابية -->
     <div class="auth-overlay" id="authOverlay">
         <div class="auth-box">
             <h2 style="color:#ffb800; margin-bottom:10px; font-weight:900;"><i class="fas fa-shield-alt"></i> تفعيل المنظومة 3D</h2>
@@ -168,11 +174,15 @@
         </div>
     </div>
 
+    <!-- كانفاس المؤثرات البصرية النيون الخلفية -->
     <canvas id="vfx-canvas"></canvas>
 
+    <!-- واجهة الخريطة والـ 3D Engine -->
     <div class="map-viewport" id="viewport">
+        <!-- كانفاس الرندرة ثلاثية الأبعاد للألعاب -->
         <div id="webgl-canvas"></div>
 
+        <!-- الطبقة السطحية للأزرار فوق الـ 3D -->
         <div class="html-overlay-layer" id="labelsLayer">
             <div class="floating-controls">
                 <button class="control-btn" id="toggleAudioBtn"><i class="fas fa-volume-mute"></i></button>
@@ -183,12 +193,12 @@
                 <button class="game-action-btn" onclick="openLeaderboardModal()"><i class="fas fa-trophy" style="color: #fbbf24;"></i> المتصدرون</button>
                 <button class="game-action-btn" onclick="openWheelModal()"><i class="fas fa-circle-notch" style="color: #a855f7;"></i> عجلة الحظ</button>
             </div>
-            
-            </div>
+        </div>
     </div>
 
     <div class="withdraw-btn-container" id="withdrawBtnDiv"><button class="withdraw-btn" id="openWithdrawModal"><i class="fas fa-shield-alt"></i> طلب سحب آمن</button></div>
 
+    <!-- لوحة التحكم السفلية المتكاملة المدمجة -->
     <div class="bottom-panel" id="bottomPanel">
         <div class="leader-xp-bar-container">
             <span>الرتبة: <span id="leaderRank" style="color:#ffb800; font-weight:bold;">قائد مبتدئ</span></span>
@@ -238,7 +248,7 @@
                         <button class="card-action-btn" style="background:linear-gradient(135deg, #d97706, #b45309);" onclick="buyMultiplier(300, 2)">شراء المسرع</button>
                     </div>
                     <div class="card-item">
-                        <div class="card-info"><span>بوابة nصوص OpenAI GPT</span><span style="color:#6366f1;">+$0.50/ث</span></div>
+                        <div class="card-info"><span>بوابة نصوص OpenAI GPT</span><span style="color:#6366f1;">+$0.50/ث</span></div>
                         <button class="card-action-btn" style="background:linear-gradient(135deg, #10b981, #059669);" onclick="buyIdleWorker('openai', 1500, 0.50)">دمج البوابة (تكلفة $1500)</button>
                     </div>
                 </div>
@@ -265,6 +275,7 @@
         </div>
     </div>
 
+    <!-- المودالات المخصصة -->
     <div class="modal-overlay" id="withdrawModal">
         <div class="modal-content">
             <div class="success-screen" id="successScreen" style="display:none; text-align:center;"><i class="fas fa-check-circle" style="font-size:3rem; color:#22c55e;"></i><h3 style="color:#ffb800; font-weight:900;">تم إرسال الطلب بنجاح!</h3><button class="card-action-btn" id="closeSuccessBtn" style="background:#4f46e5; margin-top:10px;">موافق</button></div>
@@ -322,7 +333,6 @@
         let liveChart = null;
         let chartDataPoints = Array(10).fill(5680);
 
-        // متغيرات Three.js للمحرك ثلاثي الأبعاد الحقيقي
         let scene, camera, renderer;
         let castle3DMeshes = {};
 
@@ -351,7 +361,6 @@
 
             document.getElementById('welcomeChatMsg').innerText = `👑 أهلاً بك سيدي القائد ${leaderName}! المحرك 3D ومصفوفة القلاع تعمل بكامل طاقتها الرقمية.`;
             
-            // تشغيل محرك الألعاب وبناء القلاع ثلاثية الأبعاد
             init3DEngine();
             build3DCastles();
             
@@ -363,38 +372,32 @@
             animateVFX();
         }
 
-        /* ================= بناء محرك الألعاب 3D (Three.js Engine) ================= */
         function init3DEngine() {
             const container = document.getElementById('webgl-canvas');
             
             scene = new THREE.Scene();
             scene.background = new THREE.Color('#03050a');
-            // إضافة ضباب لإعطاء عمق سينمائي خيالي
             scene.fog = new THREE.FogExp2('#03050a', 0.07);
 
             camera = new THREE.PerspectiveCamera(45, container.clientWidth / container.clientHeight, 0.1, 1000);
-            // ضبط زاوية الكاميرا أيزومتريك سينمائية تشبه لقطة الشاشة تماماً
             camera.position.set(0, 8, 12);
             camera.lookAt(0, 0, 0);
 
             renderer = new THREE.WebGLRenderer({ antialias: true });
             renderer.setSize(container.clientWidth, container.clientHeight);
-            renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2)); // جودة 4K حادة
+            renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
             renderer.shadowMap.enabled = true;
             container.appendChild(renderer.domElement);
 
-            // إضاءة البيئة المحيطة
             const ambientLight = new THREE.AmbientLight('#1e293b', 1.5);
             scene.add(ambientLight);
 
-            // ضوء رئيسي حاد (الشمس السيبرانية) لإبراز التظليل والنعومة العملاقة لقرميد القلاع
             const dirLight = new THREE.DirectionalLight('#ffffff', 2.0);
             dirLight.position.set(5, 15, 5);
             dirLight.castShadow = true;
             scene.add(dirLight);
 
-            // بناء الأرضية النيون المشعة المتطورة
-            const gridHelper = new THREE.GridHelper(20, 20, #4f46e5, #1e1b4b);
+            const gridHelper = new THREE.GridHelper(20, 20, '#4f46e5', #1e1b4b);
             gridHelper.position.y = -0.01;
             scene.add(gridHelper);
 
@@ -407,21 +410,18 @@
             Object.keys(castlesData).forEach(id => {
                 const data = castlesData[id];
                 
-                // مجموعة القلعة الواحدة الحاضنة لكل القطع
                 const castleGroup = new THREE.Group();
                 castleGroup.position.set(data.posX, 0, data.posZ);
                 scene.add(castleGroup);
                 castle3DMeshes[id] = castleGroup;
 
-                // 1. خامة الطوب الصخري عالي الجودة واللمعان
                 const stoneMaterial = new THREE.MeshStandardMaterial({
                     color: '#27354a',
                     roughness: 0.6,
                     metalness: 0.2,
-                    flatShading: true // يعطي تأثير حواف حجرية فخمة ومكعبة كالألعاب
+                    flatShading: true
                 });
 
-                // خامة النيون الخاصة بسقف القلعة المضيء
                 const roofMaterial = new THREE.MeshStandardMaterial({
                     color: data.color,
                     roughness: 0.3,
@@ -430,7 +430,6 @@
                     emissiveIntensity: 0.3
                 });
 
-                // 2. هندسة البرج (الأسطوانة الحجرية)
                 const towerGeo = new THREE.CylinderGeometry(0.5, 0.6, 1.8, 8);
                 const towerMesh = new THREE.Mesh(towerGeo, stoneMaterial);
                 towerMesh.position.y = 0.9;
@@ -438,20 +437,17 @@
                 towerMesh.receiveShadow = true;
                 castleGroup.add(towerMesh);
 
-                // 3. هندسة السقف المخروطي الحقيقي 3D مدبب بالكامل
                 const roofGeo = new THREE.ConeGeometry(0.7, 0.9, 8);
                 const roofMesh = new THREE.Mesh(roofGeo, roofMaterial);
                 roofMesh.position.y = 2.25;
                 castleGroup.add(roofMesh);
 
-                // 4. قاعدة النيون تحت كل قلعة مباشرة
                 const baseGeo = new THREE.BoxGeometry(1.4, 0.1, 1.4);
                 const baseMat = new THREE.MeshBasicMaterial({ color: data.color, wireframe: true });
                 baseGeo.position.y = 0.05;
                 const baseMesh = new THREE.Mesh(baseGeo, baseMat);
                 castleGroup.add(baseMesh);
 
-                // 5. توليد تيكت الـ HTML وربطه بإحداثيات الـ 3D
                 const label = document.createElement('div');
                 label.className = `castle-label`;
                 label.style.setProperty('--accent-color', data.color);
@@ -459,7 +455,6 @@
                 label.addEventListener('click', () => {
                     updateMonitorUI(id);
                     playTone(400, 'sine', 0.1);
-                    // حركة تفاعلية للمجسم عند ضغطه
                     castleGroup.position.y = 0.5;
                     setTimeout(() => castleGroup.position.y = 0, 150);
                 });
@@ -473,17 +468,15 @@
         function animate3D() {
             requestAnimationFrame(animate3D);
 
-            // تحديث الأنيميشن الخفيف لجميع القلاع (دوران بطيء ناعم يحاكي ألعاب الستراتيجية)
             Object.keys(castle3DMeshes).forEach(id => {
                 const mesh = castle3DMeshes[id];
-                mesh.rotation.y += 0.005; // دوران بطيء جداً وهادئ
+                mesh.rotation.y += 0.005;
 
-                // إسقاط إحداثيات الـ 3D إلى شاشة الـ HTML لربط التيكتات والأسماء بمواقعها فوق البرج بدقة 100%
                 const data = castlesData[id];
                 if (data.domElement) {
                     const wp = new THREE.Vector3();
                     mesh.getWorldPosition(wp);
-                    wp.y += 2.5; // رفعه فوق رأس البرج مباشرة
+                    wp.y += 2.5;
                     wp.project(camera);
 
                     const x = (wp.x * .5 + .5) * window.innerWidth;
@@ -702,7 +695,6 @@
             if (userBalance < 150) { showNotification("الرصيد غير كافٍ للترقية!", 'fas fa-coins'); return; }
             userBalance -= 150; const data = castlesData[activeCastleId]; data.level += 1; data.rate += (data.rate * 0.40);
             
-            // زيادة حجم المجسم في البيئة 3D ليعكس الترقية بشكل واقعي فخم!
             if(castle3DMeshes[activeCastleId]) {
                 castle3DMeshes[activeCastleId].scale.addScalar(0.12);
             }
@@ -722,7 +714,6 @@
         
         document.getElementById('sendBtn').addEventListener('click', () => { const input = document.getElementById('userInput'); const q = input.value.trim(); if(!q) return; const container = document.getElementById('chatContainer'); const uBox = document.createElement('div'); uBox.className = 'msg user'; uBox.innerText = q; container.appendChild(uBox); input.value = ''; container.scrollTop = container.scrollHeight; });
 
-        // ================= سكريبت المؤثرات البصرية النيون (VFX Canvas) =================
         const canvas = document.getElementById('vfx-canvas'); const ctx = canvas.getContext('2d'); let particlesArray = []; const numberOfParticles = 40;
         function resizeCanvas() { canvas.width = window.innerWidth; canvas.height = window.innerHeight; }
         window.addEventListener('resize', resizeCanvas); resizeCanvas();
