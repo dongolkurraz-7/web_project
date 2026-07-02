@@ -281,14 +281,11 @@
                     return; 
                 }
                 
-                if (data.user) {
+                  if (data.user) {
                     currentUser = data.user;
                     
                     // مزامنة وعرض اسم القائد باللوحة
-                    document.getElementById('displayLeaderName').innerText = leaderName || email.split('@')[0];
-                    
-                    // إخفاء نافذة الحسابات ودخول اللعبة
-                    const overlay = document.getElementById('authOverlay');
+                    document.getElementById('displayLeaderName').innerText = leaderName || document.getElementById('authOverlay');
                     if (overlay) {
                         overlay.style.opacity = '0';
                         setTimeout(() => overlay.style.display = 'none', 500);
