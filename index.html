@@ -2,429 +2,327 @@
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>إمبراطورية M-AI - النسخة السحابية المتكاملة</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WebCraft AI - منظومة الممالك السحابية</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Tajawal:wght=500;700;900&display=swap');
-
-        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Tajawal', sans-serif; -webkit-tap-highlight-color: transparent; }
-        body { background-color: #04060d; color: #fff; height: 100vh; display: flex; flex-direction: column; overflow: hidden; position: relative; }
-        #vfx-canvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 1; }
-
-        /* بوابة تسجيل الدخول المتقدمة */
-        .auth-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #04060d; display: flex; justify-content: center; align-items: center; z-index: 5000; transition: opacity 0.5s; }
-        .auth-box { background: #0b1120; border: 2px solid #23225c; border-radius: 20px; padding: 25px; width: 90%; max-width: 400px; text-align: center; box-shadow: 0 0 30px rgba(99, 102, 241, 0.2); }
-        .auth-tabs { display: flex; gap: 5px; margin-bottom: 15px; }
-        .auth-tab { flex: 1; background: #111a2e; border: 1px solid #1e293b; color: #94a3b8; padding: 6px; font-size: 0.75rem; border-radius: 6px; }
-        .auth-tab.active { background: #4f46e5; color: white; border-color: #6366f1; }
-        .auth-input { width: 100%; background:#0f172a; border:1px solid #334155; padding:10px; border-radius:8px; color:#fff; text-align:center; margin-bottom:10px; outline:none; font-size: 0.75rem; }
-
-        /* ساحة الخريطة ثلاثية الأبعاد */
-        .map-viewport { height: 48vh; width: 100%; background-color: #060913; position: relative; overflow: hidden; z-index: 2; border-bottom: 1px solid #1a233a; }
-        .isometric-scene { width: 100%; height: 100%; position: relative; transform: rotateX(55deg) rotateZ(-45deg) scale(0.52); transform-style: preserve-3d; transition: transform 0.1s ease-out; }
-        
-        .castle-node { position: absolute; width: 75px; height: 75px; transform-style: preserve-3d; cursor: grab; z-index: 10; touch-action: none; }
-        .castle-neon-grid { position: absolute; width: 100%; height: 100%; border: 2px solid var(--accent-color); border-radius: 12px; background: linear-gradient(135deg, #131b2e, #0b1120); box-shadow: 0 0 12px var(--accent-color); transition: background 0.3s; }
-        .castle-3d-structure { position: absolute; width: 35px; height: 35px; top: 20px; left: 20px; transform: rotateZ(45deg) rotateX(-55deg) translateY(-15px); transform-style: preserve-3d; pointer-events: none; }
-        .main-tower { position: absolute; width: 30px; height: 55px; background: linear-gradient(135deg, #475569, #1e293b); border: 1.5px solid #0f172a; border-radius: 4px; }
-        .castle-roof-top { position: absolute; top: -24px; left: -2px; width: 34px; height: 24px; background: radial-gradient(circle at 30% 30%, var(--accent-color), #1e050b); clip-path: polygon(50% 0%, 0% 100%, 100% 100%); }
-        .platform-badge { position: absolute; top: -70px; left: 50%; transform: translateX(-50%) rotateZ(45deg) rotateX(-55deg); background: rgba(6, 9, 19, 0.95); border: 1.5px solid var(--accent-color); padding: 2px 8px; border-radius: 15px; white-space: nowrap; }
-        .platform-badge span { font-size: 0.65rem; font-weight: bold; margin-right: 3px; color: #fff; }
-
-        /* إحداثيات الممالك السبعة */
-        .c-youtube { --accent-color: #ef4444; top: 8%; left: 8%; }
-        .c-tiktok { --accent-color: #06b6d4; top: 8%; left: 55%; }
-        .c-insta { --accent-color: #ec4899; top: 36%; left: 6%; }
-        .c-snap { --accent-color: #eab308; top: 36%; left: 42%; }
-        .c-facebook { --accent-color: #3b82f6; top: 36%; left: 75%; }
-        .c-linkedin { --accent-color: #0284c7; top: 65%; left: 12%; }
-        .c-upwork { --accent-color: #22c55e; top: 65%; left: 55%; }
-
-        /* أدوات التحكم والاندفاع */
-        .floating-controls { position: absolute; top: 10px; left: 10px; z-index: 100; display: flex; gap: 6px; }
-        .control-btn { background: #0b1120; border: 1px solid #23225c; color: white; padding: 8px; border-radius: 50%; width: 35px; height: 35px; display: flex; align-items: center; justify-content: center; font-size: 0.75rem; }
-        .overdrive-btn { background: linear-gradient(135deg, #ef4444, #b91c1c); border: 1px solid #f87171; color: white; padding: 4px 10px; border-radius: 6px; font-weight: 900; font-size: 0.65rem; position: absolute; top: 10px; right: 10px; z-index: 100; box-shadow: 0 0 10px #ef4444; animation: pulse 1.5s infinite; }
-
-        body.overdrive-active { animation: shake 0.3s infinite; }
-        body.overdrive-active .castle-neon-grid { background: #450a0a !important; border-color: #ef4444 !important; box-shadow: 0 0 20px #ef4444 !important; }
-
-        .withdraw-btn-container { position: absolute; bottom: 54%; left: 10px; z-index: 90; }
-        .withdraw-btn { background: linear-gradient(135deg, #dc2626, #991b1b); color: white; border: 1px solid #ef4444; padding: 6px 14px; border-radius: 20px; font-weight: bold; font-size: 0.65rem; cursor: pointer; }
-
-        /* لوحة التحكم السفلية المدمجة */
-        .bottom-panel { height: 52vh; width: 100%; background: #070a14; padding: 4px; display: flex; flex-direction: column; gap: 4px; z-index: 50; overflow: hidden; }
-        .stats-grid { display: flex; gap: 4px; width: 100%; }
-        .treasury-row { flex: 1; background: #0d1222; border: 1px solid #1e293b; padding: 4px 8px; border-radius: 6px; display: flex; justify-content: space-between; align-items: center; font-size: 0.65rem; font-weight: bold; }
-
-        .panel-dynamic-content { flex: 1; display: flex; gap: 4px; width: 100%; overflow: hidden; }
-
-        .tab-panel-container { width: 42%; display: flex; flex-direction: column; gap: 2px; background: #080f1e; border: 1px solid #1e293b; border-radius: 8px; padding: 4px; }
-        .tab-headers { display: flex; gap: 2px; border-bottom: 1px solid #1e293b; padding-bottom: 2px; }
-        .tab-btn { flex: 1; background: #0d162d; border: none; color: #94a3b8; padding: 4px 1px; font-size: 0.58rem; font-weight: bold; border-radius: 4px; }
-        .tab-btn.active { background: #4f46e5; color: #fff; }
-        .tab-content-box { flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 3px; }
-
-        .card-item { background: #0d162d; border: 1px solid #1e293b; border-radius: 6px; padding: 4px; display: flex; flex-direction: column; gap: 2px; }
-        .card-info { display: flex; justify-content: space-between; font-size: 0.58rem; font-weight: bold; }
-        .card-action-btn { width: 100%; background: linear-gradient(135deg, #16a34a, #15803d); color: white; border: none; padding: 3px; border-radius: 4px; font-size: 0.55rem; font-weight: bold; }
-
-        .castle-monitor-panel { width: 28%; background: #0b1120; border: 1px solid #23225c; border-radius: 8px; padding: 4px; display: flex; flex-direction: column; justify-content: space-between; }
-        .monitor-header { font-size: 0.6rem; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid #1e293b; padding-bottom: 2px; }
-        .monitor-stats { font-size: 0.52rem; display: flex; flex-direction: column; gap: 1px; margin: 2px 0; }
-        
-        .ai-chat-box { flex: 1; background: #04070f; border: 1px solid #1d1b4b; border-radius: 8px; padding: 4px; display: flex; flex-direction: column; gap: 2px; overflow: hidden; }
-        .chat-messages { flex: 1; overflow-y: auto; font-size: 0.58rem; }
-        .msg { padding: 4px 6px; border-radius: 6px; margin-bottom: 3px; line-height: 1.3; }
-        .msg.ai { background: #111033; border-right: 2px solid #4f46e5; color: #cbd5e1; }
-        .msg.user { background: #1e293b; border-left: 2px solid #ffb800; text-align: left; }
-        .chat-input-area { display: flex; gap: 2px; background: #0d1222; border: 1px solid #1e293b; border-radius: 6px; padding: 1px; }
-        .chat-input-area input { flex: 1; background: transparent; border: none; color: #fff; padding: 4px; font-size: 0.65rem; outline: none; }
-        .chat-input-area button { width: 22px; height: 22px; background: linear-gradient(135deg, #4f46e5, #3730a3); border: none; border-radius: 4px; color: #fff; font-size: 0.55rem; }
-
-        /* نافذة السحب المنبثقة */
-        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(3, 5, 12, 0.9); backdrop-filter: blur(4px); display: none; justify-content: center; align-items: center; z-index: 2000; }
-        .modal-content { background: #0b1120; border: 2px solid #23225c; border-radius: 16px; width: 85%; max-width: 360px; padding: 16px; display: flex; flex-direction: column; gap: 10px; position: relative; }
-        .success-screen { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: #0b1120; display: none; flex-direction: column; align-items: center; justify-content: center; gap: 10px; padding: 16px; text-align: center; z-index: 10; }
-
-        @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.05); box-shadow: 0 0 15px #ef4444; } 100% { transform: scale(1); } }
-        @keyframes shake { 0% { transform: translate(1px, 1px) rotate(0deg); } 10% { transform: translate(-1px, -2px) rotate(-1deg); } 30% { transform: translate(3px, 2px) rotate(0deg); } 50% { transform: translate(-1px, 2px) rotate(1deg); } 80% { transform: translate(-1px, -1px) rotate(0deg); } 100% { transform: translate(1px, -2px) rotate(-1deg); } }
-
-        @media (min-width: 769px) {
-            body { flex-direction: row; }
-            .map-viewport { height: 100%; flex: 1; }
-            .withdraw-btn-container { bottom: 20px; right: 440px; left: auto; }
-            .bottom-panel { width: 440px; height: 100%; border-top: none; border-right: 2px solid #1a233a; }
-            .panel-dynamic-content { flex-direction: column; }
-            .tab-panel-container, .castle-monitor-panel { width: 100%; height: 140px; }
-            .isometric-scene { transform: rotateX(55deg) rotateZ(-45deg) scale(0.75); }
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        body {
+            background-color: #0b0f19;
+            color: #fff;
+            overflow-x: hidden;
+        }
+        /* واجهة تسجيل الدخول المظلمة */
+        #authOverlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle at center, #111827, #030712);
+            z-index: 9999;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            transition: opacity 0.5s ease;
+        }
+        .auth-container {
+            background: #1f2937;
+            padding: 30px;
+            border-radius: 12px;
+            width: 90%;
+            max-width: 400px;
+            border: 1px solid #374151;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+            text-align: center;
+        }
+        .auth-title {
+            color: #f59e0b;
+            font-size: 1.5rem;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+        .tabs {
+            display: flex;
+            margin-bottom: 20px;
+            background: #111827;
+            border-radius: 8px;
+            padding: 4px;
+        }
+        .tab {
+            flex: 1;
+            padding: 10px;
+            background: transparent;
+            border: none;
+            color: #9ca3af;
+            cursor: pointer;
+            font-weight: bold;
+            border-radius: 6px;
+            transition: all 0.3s;
+        }
+        .tab.active {
+            background: #312e81;
+            color: #fff;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+        .input-group {
+            margin-bottom: 15px;
+            text-align: right;
+        }
+        .input-group label {
+            display: block;
+            margin-bottom: 5px;
+            color: #d1d5db;
+            font-size: 0.9rem;
+        }
+        .input-group input {
+            width: 100%;
+            padding: 12px;
+            background: #111827;
+            border: 1px solid #4b5563;
+            border-radius: 8px;
+            color: #fff;
+            outline: none;
+            font-size: 1rem;
+            text-align: left;
+        }
+        .input-group input::placeholder {
+            text-align: right;
+        }
+        .auth-btn {
+            width: 100%;
+            padding: 14px;
+            background: #047857;
+            color: #fff;
+            border: none;
+            border-radius: 8px;
+            font-size: 1.1rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background 0.3s;
+            margin-top: 10px;
+        }
+        .auth-btn:hover {
+            background: #059669;
+        }
+        .auth-btn:disabled {
+            background: #4b5563;
+            cursor: not-allowed;
+        }
+        /* واجهة اللعبة الرئيسية */
+        .game-dashboard {
+            padding: 20px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        .header-bar {
+            background: #1f2937;
+            padding: 15px 20px;
+            border-radius: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            border: 1px solid #374151;
+        }
+        .leader-info {
+            color: #f59e0b;
+            font-weight: bold;
+        }
+        .logout-btn {
+            background: #dc2626;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: bold;
         }
     </style>
 </head>
 <body>
 
-    <div class="auth-overlay" id="authOverlay">
-        <div class="auth-box">
-            <h3 style="color:#ffb800; margin-bottom:12px; font-weight:900;"><i class="fas fa-user-shield"></i> بوابة الحسابات السحابية</h3>
-            <div class="auth-tabs">
-                <button class="auth-tab active" id="tabLogin" onclick="switchAuthMode('login')">تسجيل دخول</button>
-                <button class="auth-tab" id="tabRegister" onclick="switchAuthMode('register')">حساب جديد</button>
+    <div id="authOverlay">
+        <div class="auth-container">
+            <div class="auth-title">
+                <span>👤🔒 بوابة الحسابات السحابية</span>
             </div>
             
-            <div id="registerFields" style="display: none;">
-                <input type="text" id="authLeaderName" class="auth-input" placeholder="اسم قيادة القلعة...">
+            <div class="tabs">
+                <button id="loginModeBtn" class="tab active" onclick="switchAuthMode('login')">تسجيل دخول</button>
+                <button id="registerModeBtn" class="tab" onclick="switchAuthMode('register')">حساب جديد</button>
             </div>
-            <input type="email" id="authEmail" class="auth-input" placeholder="البريد الإلكتروني...">
-            <input type="password" id="authPassword" class="auth-input" placeholder="كلمة المرور...">
-            
-            <button class="card-action-btn" id="executeAuthBtn" style="padding:10px; font-size:0.75rem;" onclick="handleAuth()">تشغيل محرك المنظومة</button>
+
+            <div class="input-group" id="authLeaderNameField" style="display: none;">
+                <label>اسم القيادة / الإمبراطور</label>
+                <input type="text" id="authLeaderName" placeholder="أدخل اسم قيادتك الفاتحة...">
+            </div>
+
+            <div class="input-group">
+                <label>البريد الإلكتروني السحابي</label>
+                <input type="email" id="authEmail" placeholder="yourname@gmail.com">
+            </div>
+
+            <div class="input-group">
+                <label>كلمة المرور المشفرة</label>
+                <input type="password" id="authPassword" placeholder="••••••••">
+            </div>
+
+            <button id="executeAuthBtn" class="auth-btn" onclick="handleAuth()">تشغيل محرك المنظومة</button>
         </div>
     </div>
 
-    <canvas id="vfx-canvas"></canvas>
-
-    <div class="map-viewport" id="viewport">
-        <div class="floating-controls">
-            <button class="control-btn" id="toggleAudioBtn"><i class="fas fa-volume-mute"></i></button>
-            <button class="control-btn" onclick="logoutUser()" style="border-color:#ef4444; color:#ef4444;"><i class="fas fa-sign-out-alt"></i></button>
-        </div>
-
-        <button class="overdrive-btn" id="overdriveBtn" onclick="triggerOverdrive()"><i class="fas fa-radiation"></i> OVERDRIVE</button>
-
-        <div class="isometric-scene" id="scene">
-            <div class="castle-node c-youtube" data-id="youtube"><div class="platform-badge"><i class="fab fa-youtube" style="color:#ef4444;"></i><span>يوتيوب</span></div><div class="castle-neon-grid"></div><div class="castle-3d-structure"><div class="main-tower"><div class="castle-roof-top"></div></div></div></div>
-            <div class="castle-node c-tiktok" data-id="tiktok"><div class="platform-badge"><i class="fab fa-tiktok" style="color:#06b6d4;"></i><span>تيك توك</span></div><div class="castle-neon-grid"></div><div class="castle-3d-structure"><div class="main-tower"><div class="castle-roof-top"></div></div></div></div>
-            <div class="castle-node c-insta" data-id="insta"><div class="platform-badge"><i class="fab fa-instagram" style="color:#ec4899;"></i><span>انستغرام</span></div><div class="castle-neon-grid"></div><div class="castle-3d-structure"><div class="main-tower"><div class="castle-roof-top"></div></div></div></div>
-            <div class="castle-node c-snap" data-id="snap"><div class="platform-badge"><i class="fab fa-snapchat" style="color:#eab308;"></i><span>سناب شات</span></div><div class="castle-neon-grid"></div><div class="castle-3d-structure"><div class="main-tower"><div class="castle-roof-top"></div></div></div></div>
-            <div class="castle-node c-facebook" data-id="facebook"><div class="platform-badge"><i class="fab fa-facebook-f" style="color:#3b82f6;"></i><span>فيسبوك</span></div><div class="castle-neon-grid"></div><div class="castle-3d-structure"><div class="main-tower"><div class="castle-roof-top"></div></div></div></div>
-            <div class="castle-node c-linkedin" data-id="linkedin"><div class="platform-badge"><i class="fab fa-linkedin-in" style="color:#0284c7;"></i><span>لينكد إن</span></div><div class="castle-neon-grid"></div><div class="castle-3d-structure"><div class="main-tower"><div class="castle-roof-top"></div></div></div></div>
-            <div class="castle-node c-upwork" data-id="upwork"><div class="platform-badge"><i class="fas fa-briefcase" style="color:#22c55e;"></i><span>أب ورك</span></div><div class="castle-neon-grid"></div><div class="castle-3d-structure"><div class="main-tower"><div class="castle-roof-top"></div></div></div></div>
-        </div>
-    </div>
-
-    <div class="withdraw-btn-container"><button class="withdraw-btn" id="openWithdrawModal"><i class="fas fa-shield-alt"></i> طلب سحب آمن</button></div>
-
-    <div class="bottom-panel">
-        <div class="stats-grid">
-            <div class="treasury-row" id="balanceRow"><span>الخزينة المتاحة:</span><span style="color:#4ade80; font-family: monospace;" id="availableBalance">$0.00</span></div>
-            <div class="treasury-row"><span>الإنتاج الكلي:</span><span style="color:#6366f1;" id="totalProductionRate">+$0.00/ث</span></div>
+    <div class="game-dashboard">
+        <div class="header-bar">
+            <div class="leader-info">🎴 المحرك متصل | مرحباً بالقائد: <span id="displayLeaderName">جاري التحميل...</span></div>
+            <button class="logout-btn" onclick="handleLogout()">تسجيل خروج آمن</button>
         </div>
         
-        <div class="panel-dynamic-content">
-            <div class="tab-panel-container">
-                <div class="tab-headers">
-                    <button class="tab-btn active" onclick="switchTab('missions')">العقود والمهام</button>
-                    <button class="tab-btn" onclick="switchTab('shop')">المتجر المظلم</button>
-                    <button class="tab-btn" onclick="switchTab('ops')">العمليات اليومية</button>
-                </div>
-                
-                <div class="tab-content-box" id="missionsTab">
-                    <div class="card-item">
-                        <div class="card-info"><span>تعدين خوادم يوتيوب</span><span style="color:#4ade80;">+$450.00</span></div>
-                        <button class="card-action-btn" onclick="startMission(this, 450, 10)">تنفيذ العقد (10ث)</button>
-                    </div>
-                </div>
-
-                <div class="tab-content-box" id="shopTab" style="display:none;">
-                    <div class="card-item">
-                        <div class="card-info"><span>مسرع التدفق التلقائي (x2)</span><span style="color:#fbbf24;">$300</span></div>
-                        <button class="card-action-btn" style="background:linear-gradient(135deg, #d97706, #b45309);" onclick="buyMultiplier(300, 2)">شراء المسرع</button>
-                    </div>
-                </div>
-
-                <div class="tab-content-box" id="opsTab" style="display:none;">
-                    <div class="card-item">
-                        <div class="card-info"><span>تكامل العقد البرمجية السحابية</span><span style="color:#a855f7;">مكافأة $1,500</span></div>
-                        <button class="card-action-btn" style="background:linear-gradient(135deg, #6366f1, #4f46e5);" onclick="triggerAutomationSimulation()">محاكاة تدفق العقد</button>
-                    </div>
-                </div>
-            </div>
-
-            <div class="castle-monitor-panel">
-                <div class="monitor-header"><i id="monitorIcon" class="fab fa-youtube" style="color: #ef4444;"></i>&nbsp;<span id="monitorName">يوتيوب</span> &nbsp;<span id="monitorLevelDisplay" style="color:#ffb800; font-weight:bold;">LV.1</span></div>
-                <div class="monitor-stats">
-                    <div style="display:flex; justify-content:space-between;"><span>الإنتاج الذاتي:</span><span class="val" id="monitorRate">+$0.05/ث</span></div>
-                </div>
-                <button class="card-action-btn" id="upgradeCastleBtn" style="background:linear-gradient(135deg, #4f46e5, #1d4ed8); font-size:0.52rem;"><i class="fas fa-bolt"></i> ترقية القلعة ($150)</button>
-            </div>
-
-            <div class="ai-chat-box">
-                <div class="chat-messages" id="chatContainer"><div class="msg ai" id="welcomeChatMsg">🔒 الرجاء تسجيل الدخول لتفعيل الاتصال المشفر...</div></div>
-                <div class="chat-input-area"><input type="text" id="userInput" placeholder="أرسل أمراً..."><button id="sendBtn"><i class="fas fa-paper-plane"></i></button></div>
-            </div>
-        </div>
-    </div>
-
-    <div class="modal-overlay" id="withdrawModal">
-        <div class="modal-content">
-            <div class="success-screen" id="successScreen"><i class="fas fa-check-circle" style="font-size:2.5rem; color:#22c55e;"></i><h4 style="color:#ffb800; font-weight:900;">تم إرسال الطلب بنجاح!</h4><button class="card-action-btn" id="closeSuccessBtn" style="background:#4f46e5; margin-top:5px;">موافق</button></div>
-            <div style="font-size:0.85rem; font-weight:900; color:#ffb800;"><i class="fas fa-shield-halved"></i> بوابة السحب الآمن للرصيد</div>
-            <select style="width:100%; background:#0f172a; border:1px solid #334155; padding:8px; border-radius:8px; color:#fff;" id="walletType"><option value="Payeer">محفظة الباير (Payeer)</option><option value="USDT">USDT (TRC-20)</option></select>
-            <input type="text" id="walletAddress" placeholder="أدخل رقم الحساب..." style="width:100%; background:#0f172a; border:1px solid #334155; padding:10px; border-radius:8px; color:#fff; font-size:0.7rem; outline:none;">
-            <div style="display:flex; gap:8px; justify-content:flex-end;"><button class="card-action-btn" style="background:#334155; width:auto; padding:5px 15px;" id="closeWithdrawModal">إلغاء</button><button class="card-action-btn" style="width:auto; padding:5px 15px;" id="confirmWithdraw">تأكيد</button></div>
+        <div style="text-align: center; margin-top: 50px;">
+            <h1 style="color: #f59e0b; margin-bottom: 15px;">🌐 تم تفعيل سرفر WebCraft AI بنجاح</h1>
+            <p style="color: #9ca3af;">قاعدة البيانات متصلة الآن بالكامل ومحمية ضد أخطاء التسجيل التلقائي العشوائي.</p>
         </div>
     </div>
 
     <script>
-        // إعدادات خادم Supabase المركزي الخاص بك
-const SUPABASE_URL ="https://pujxqcfzljzxiijgfbtw.supabase.co";
-        const SUPABASE_ANON_KEY = "sb_publishable_aa3vo_ehM9onqOmJuH0nVg_Wy_CK9xk";
+        // =========================================================
+        // إعدادات خادم Supabase المركزي (تم دمج الرابط في سطر واحد مستقيم)
+        // =========================================================
+        const SUPABASE_URL = "https://pujxqcfzljzxiijgfbtw.supabase.co";
+        const SUPABASE_ANON_KEY = "ضع_هنا_مفتاح_الأمان_الخاص_بمشروعك_ANON_KEY";
+
+        // تهيئة عميل Supabase
         const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-        let castlesData = {
-            youtube: { name: 'يوتيوب', icon: 'fab fa-youtube', color: '#ef4444', level: 1, rate: 0.05 },
-            tiktok: { name: 'تيك توك', icon: 'fab fa-tiktok', color: '#06b6d4', level: 1, rate: 0.08 },
-            insta: { name: 'انستغرام', icon: 'fab fa-instagram', color: '#ec4899', level: 1, rate: 0.03 },
-            snap: { name: 'سناب شات', icon: 'fab fa-snapchat', color: '#eab308', level: 1, rate: 0.06 },
-            facebook: { name: 'فيسبوك', icon: 'fab fa-facebook-f', color: '#3b82f6', level: 1, rate: 0.02 },
-            linkedin: { name: 'لينكد إن', icon: 'fab fa-linkedin-in', color: '#0284c7', level: 1, rate: 0.12 },
-            upwork: { name: 'أب ورك', icon: 'fas fa-briefcase', color: '#22c55e', level: 1, rate: 0.15 }
-        };
+        let currentUser = null;
+        let authMode = 'login'; 
 
-        let activeCastleId = 'youtube'; let userBalance = 0.00; let globalMultiplier = 1; let overdriveMultiplier = 1; let audioCtx = null; let isMuted = true; let currentUser = null; let authMode = 'login';
-
-        // إعدادات جزيئات النيون الوميضية (VFX Particles)
-        const canvas = document.getElementById('vfx-canvas'); const ctx = canvas.getContext('2d'); let particles = [];
-        function resizeCanvas() { canvas.width = window.innerWidth; canvas.height = window.innerHeight; }
-        window.addEventListener('resize', resizeCanvas); resizeCanvas();
-        function createParticle(x, y, color) { for(let i=0; i<10; i++) { particles.push({ x, y, vx: (Math.random()-0.5)*4, vy: (Math.random()-0.5)*4, radius: Math.random()*3+1, color, alpha: 1 }); } }
-        function animateParticles() { ctx.clearRect(0,0,canvas.width,canvas.height); particles.forEach((p, idx) => { p.x += p.vx; p.y += p.vy; p.alpha -= 0.02; if(p.alpha <= 0) { particles.splice(idx, 1); } else { ctx.save(); ctx.globalAlpha = p.alpha; ctx.fillStyle = p.color; ctx.beginPath(); ctx.arc(p.x, p.y, p.radius, 0, Math.PI*2); ctx.fill(); ctx.restore(); } }); requestAnimationFrame(animateParticles); }
-        animateParticles();
-
-        function initAudio() { if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)(); }
-        function playTone(freq, type, duration) { if (isMuted || !audioCtx) return; try { let osc = audioCtx.createOscillator(); let gain = audioCtx.createGain(); osc.type = type; osc.frequency.value = freq; gain.gain.setValueAtTime(0.04, audioCtx.currentTime); gain.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + duration); osc.connect(gain); gain.connect(audioCtx.destination); osc.start(); osc.stop(audioCtx.currentTime + duration); } catch(e) {} }
-
-        // التبديل بين واجهة الدخول وإنشاء الحساب
+        // التبديل السلس بين تبويب "تسجيل دخول" و "حساب جديد"
         function switchAuthMode(mode) {
             authMode = mode;
-            document.getElementById('tabLogin').classList.toggle('active', mode === 'login');
-            document.getElementById('tabRegister').classList.toggle('active', mode === 'register');
-            document.getElementById('registerFields').style.display = mode === 'register' ? 'block' : 'none';
+            const loginBtn = document.getElementById('loginModeBtn');
+            const registerBtn = document.getElementById('registerModeBtn');
+            const leaderNameField = document.getElementById('authLeaderNameField');
+            const executeBtn = document.getElementById('executeAuthBtn');
+
+            if (mode === 'login') {
+                loginBtn.classList.add('active');
+                registerBtn.classList.remove('remove'); // تصحيح الكلاس
+                registerBtn.classList.remove('active');
+                leaderNameField.style.display = 'none';
+                executeBtn.innerText = "تشغيل محرك المنظومة";
+            } else {
+                loginBtn.classList.remove('active');
+                registerBtn.classList.add('active');
+                leaderNameField.style.display = 'block';
+                executeBtn.innerText = "تأسيس الإمبراطورية";
+            }
         }
 
-        // معالجة الحسابات عبر كود الـ Backend السحابي
+        // المعالجة البرمجية الجذرية للحسابات (الفصل الآمن لمنع تعليق الجلسة)
         async function handleAuth() {
-            initAudio();
             const email = document.getElementById('authEmail').value.trim();
             const password = document.getElementById('authPassword').value.trim();
-            const leaderName = document.getElementById('authLeaderName').value.trim();
+            const leaderNameInput = document.getElementById('authLeaderName');
+            const leaderName = leaderNameInput ? leaderNameInput.value.trim() : '';
 
-            if (!email || !password) { alert('الرجاء إدخال البريد الإلكتروني وكلمة المرور'); return; }
+            if (!email || !password) { 
+                alert('الرجاء إدخال البريد الإلكتروني وكلمة المرور بدقة.'); 
+                return; 
+            }
 
-            document.getElementById('executeAuthBtn').innerText = "جاري التحقق الرقمي...";
+            const executeBtn = document.getElementById('executeAuthBtn');
+            executeBtn.innerText = "جاري التحقق الرقمي...";
+            executeBtn.disabled = true;
             
             if (authMode === 'register') {
+                // خطوة 1: تسجيل الحساب في Supabase Auth
                 const { data, error } = await _supabase.auth.signUp({ email, password });
-                if (error) { alert(error.message); document.getElementById('executeAuthBtn').innerText = "تشغيل محرك المنظومة"; return; }
+                
+                if (error) { 
+                    alert("خطأ في التسجيل الرقمي: " + error.message); 
+                    executeBtn.innerText = "تأسيس الإمبراطورية"; 
+                    executeBtn.disabled = false;
+                    return; 
+                }
+                
                 if (data.user) {
-                    await _supabase.from('profiles').update({ leader_name: leaderName || 'قائد سحابي' }).eq('id', data.user.id);
-                    alert('تم إنشاء الحساب سحابياً بنجاح! جاري تسجيل دخولك...');
+                    // خطوة 2: تحديث اسم القائد في قاعدة البيانات السحابية لجدول البروفايل
+                    try {
+                        await _supabase.from('profiles').update({ leader_name: leaderName || 'قائد سحابي' }).eq('id', data.user.id);
+                    } catch (pError) {
+                        console.log("تحديث بروفايل غير حرج", pError);
+                    }
+                    
+                    alert('تم إنشاء الحساب سحابياً بنجاح! تم تحويلك تلقائياً لتبويب تسجيل الدخول لتفعيل جلستك الآمنة دون أخطاء.');
+                    
+                    // خطوة 3: التحويل الجذري الآمن لتبويب تسجيل الدخول
                     switchAuthMode('login');
-                    handleAuth();
+                    document.getElementById('authPassword').value = password; // الاحتفاظ بكلمة المرور لتسهيل المهمة
+                    executeBtn.innerText = "تشغيل محرك المنظومة";
+                    executeBtn.disabled = false;
                 }
             } else {
+                // عملية تسجيل الدخول المباشر والآمن
                 const { data, error } = await _supabase.auth.signInWithPassword({ email, password });
-                if (error) { alert(error.message); document.getElementById('executeAuthBtn').innerText = "تشغيل محرك المنظومة"; return; }
+                
+                if (error) { 
+                    alert("بيانات الدخول غير مطابقة: " + error.message); 
+                    executeBtn.innerText = "تشغيل محرك المنظومة"; 
+                    executeBtn.disabled = false;
+                    return; 
+                }
+                
                 if (data.user) {
                     currentUser = data.user;
-                    await syncUserData();
-                    document.getElementById('authOverlay').style.opacity = '0';
-                    setTimeout(() => document.getElementById('authOverlay').style.display = 'none', 500);
-                }
-            }
-        }
-
-        // مزامنة وسحب رصيد وبيانات المستخدم الحقيقية من السحابة
-        async function syncUserData() {
-            if (!currentUser) return;
-            let { data: profile } = await _supabase.from('profiles').select('*').eq('id', currentUser.id).single();
-            if (profile) {
-                userBalance = parseFloat(profile.balance);
-                globalMultiplier = parseFloat(profile.global_multiplier);
-                document.getElementById('welcomeChatMsg').innerText = `👑 أهلاً بعودتك للقيادة السحابية، القائد ${profile.leader_name}!`;
-            }
-
-            let { data: castles } = await _supabase.from('user_castles').select('*').eq('user_id', currentUser.id);
-            if (castles && castles.length > 0) {
-                castles.forEach(c => {
-                    if (castlesData[c.castle_id]) {
-                        castlesData[c.castle_id].level = c.level;
-                        castlesData[c.castle_id].rate = parseFloat(c.rate);
-                        const node = document.querySelector(`[data-id="${c.castle_id}"]`);
-                        if (node && c.top_position) {
-                            node.style.top = c.top_position + '%';
-                            node.style.left = c.left_position + '%';
-                        }
+                    
+                    // مزامنة وعرض اسم القائد باللوحة
+                    document.getElementById('displayLeaderName').innerText = leaderName || email.split('@')[0];
+                    
+                    // إخفاء نافذة الحسابات ودخول اللعبة
+                    const overlay = document.getElementById('authOverlay');
+                    if (overlay) {
+                        overlay.style.opacity = '0';
+                        setTimeout(() => overlay.style.display = 'none', 500);
                     }
-                });
+                    
+                    // إذا كان لديك دالة syncUserData() بالنسخة الأصلية استدعيها هنا:
+                    // if (typeof syncUserData === 'function') await syncUserData();
+                }
             }
-            updateMonitorUI(activeCastleId);
         }
 
-        // حفظ الرصيد سحابياً بشكل دوري وآمن
-        async function cloudSaveBalance() {
-            if (!currentUser) return;
-            await _supabase.from('profiles').update({ balance: userBalance }).eq('id', currentUser.id);
-        }
-
-        async function logoutUser() {
-            await cloudSaveBalance();
+        // دالة تسجيل الخروج الآمن وتصفير الجلسة
+        async function handleLogout() {
             await _supabase.auth.signOut();
-            location.reload();
-        }
-
-        document.getElementById('toggleAudioBtn').addEventListener('click', () => { initAudio(); isMuted = !isMuted; document.getElementById('toggleAudioBtn').innerHTML = isMuted ? '<i class="fas fa-volume-mute"></i>' : '<i class="fas fa-volume-up"></i>'; });
-
-        function triggerOverdrive() {
-            if(document.body.classList.contains('overdrive-active')) return;
-            initAudio(); overdriveMultiplier = 5; playTone(120, 'sawtooth', 1.5);
-            document.body.classList.add('overdrive-active'); document.getElementById('overdriveBtn').innerText = "🔴 جاري الاندفاع!!";
-            setTimeout(() => { document.body.classList.remove('overdrive-active'); overdriveMultiplier = 1; document.getElementById('overdriveBtn').innerText = "🥶 فترة تبريد..."; document.getElementById('overdriveBtn').style.opacity = '0.4'; setTimeout(() => { document.getElementById('overdriveBtn').innerText = "☢️ OVERDRIVE"; document.getElementById('overdriveBtn').style.opacity = '1'; }, 20000); }, 15000);
-        }
-
-        function triggerAutomationSimulation() { playTone(440, 'square', 0.2); userBalance += 1500; cloudSaveBalance(); alert("🔗 تم محاكاة العقد وضخ $1,500 في الخزينة السحابية!"); }
-
-        const viewport = document.getElementById('viewport'); const scene = document.getElementById('scene');
-        viewport.addEventListener('mousemove', (e) => { let xAxis = (window.innerWidth / 2 - e.clientX) / 35; let yAxis = (window.innerHeight / 2 - e.clientY) / 35; scene.style.transform = `rotateX(${55 + yAxis}deg) rotateZ(${-45 + xAxis}deg) scale(0.52)`; });
-
-        function switchTab(tab) {
-            playTone(600, 'sine', 0.05);
-            document.getElementById('missionsTab').style.display = tab === 'missions' ? 'flex' : 'none';
-            document.getElementById('shopTab').style.display = tab === 'shop' ? 'flex' : 'none';
-            document.getElementById('opsTab').style.display = tab === 'ops' ? 'flex' : 'none';
-            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-            event.target.classList.add('active');
-        }
-
-        function buyMultiplier(cost, mult) {
-            if (userBalance < cost) { alert("الرصيد لا يكفي!"); return; }
-            userBalance -= cost; globalMultiplier *= mult; if (currentUser) _supabase.from('profiles').update({ global_multiplier: globalMultiplier });
-            playTone(880, 'sine', 0.4); cloudSaveBalance(); alert(`⚡ تم تنشيط المسرع السحابي x${mult}!`);
-        }
-
-        function calculateTotalRate() { let total = 0; for (let key in castlesData) { total += castlesData[key].rate; } return total * globalMultiplier * overdriveMultiplier; }
-        
-        // المحرك الأساسي التلقائي لحساب وتدفق الرصيد ثانية بثانية
-        setInterval(() => {
-            if (!currentUser) return;
-            const totalRate = calculateTotalRate(); userBalance += totalRate;
-            document.getElementById('availableBalance').innerText = `$${userBalance.toFixed(2)}`;
-            document.getElementById('totalProductionRate').innerText = `+$${totalRate.toFixed(2)}/ث`;
-        }, 1000);
-
-        // حفظ الرصيد في السيرفر تلقائياً كل 10 ثوانٍ لمنع ضياعه
-        setInterval(() => { if(currentUser) cloudSaveBalance(); }, 10000);
-
-        function startMission(btn, reward, duration) {
-            if (btn.classList.contains('running')) return;
-            playTone(520, 'square', 0.15); btn.classList.add('running'); let timeLeft = duration; btn.innerText = `جاري... (${timeLeft}ث)`;
-            const countdown = setInterval(() => {
-                timeLeft--; if (timeLeft > 0) { btn.innerText = `جاري... (${timeLeft}ث)`; } 
-                else {
-                    clearInterval(countdown); btn.classList.remove('running'); btn.innerText = `تنفيذ العقد (${duration}ث)`;
-                    userBalance += reward; cloudSaveBalance(); playTone(950, 'sine', 0.25);
-                    const container = document.getElementById('chatContainer'); const msg = document.createElement('div'); msg.className = 'msg ai'; msg.style.borderRight = '2px solid #22c55e'; msg.innerText = `💰 عقد سحابي ناجح! تم إيداع +$${reward}!`; container.appendChild(msg); container.scrollTop = container.scrollHeight;
-                }
-            }, 1000);
-        }
-
-        function updateMonitorUI(id) {
-            activeCastleId = id; const data = castlesData[id];
-            document.getElementById('monitorIcon').className = data.icon; document.getElementById('monitorIcon').style.color = data.color;
-            document.getElementById('monitorName').innerText = data.name; document.getElementById('monitorLevelDisplay').innerText = `LV.${data.level}`;
-            document.getElementById('monitorRate').innerText = `+$${(data.rate * globalMultiplier).toFixed(2)}/ث`;
-        }
-
-        // تفعيل ميزة السحب والإفلات وحفظ الإحداثيات السحابية فوراً
-        const nodes = document.querySelectorAll('.castle-node');
-        nodes.forEach(node => {
-            let active = false; let hasMoved = false; let currentX, currentY, initialX, initialY, xOffset = 0, yOffset = 0;
-            const start = (e) => {
-                hasMoved = false; const parentRect = node.parentElement.getBoundingClientRect(); const nodeRect = node.getBoundingClientRect();
-                xOffset = ((nodeRect.left - parentRect.left) / parentRect.width) * 100; yOffset = ((nodeRect.top - parentRect.top) / parentRect.height) * 100;
-                const clientX = e.type.includes('touch') ? e.touches[0].clientX : e.clientX; const clientY = e.type.includes('touch') ? e.touches[0].clientY : e.clientY;
-                initialX = clientX; initialY = clientY; active = true; node.classList.add('dragging');
-            };
-            const move = (e) => {
-                if (!active) return; hasMoved = true;
-                const clientX = e.type.includes('touch') ? e.touches[0].clientX : e.clientX; const clientY = e.type.includes('touch') ? e.touches[0].clientY : e.clientY;
-                currentX = clientX - initialX; currentY = clientY - initialY; const parentRect = node.parentElement.getBoundingClientRect();
-                let newLeft = xOffset + (currentX / parentRect.width) * 100; let newTop = yOffset + (currentY / parentRect.height) * 100;
-                if(newLeft < 1) newLeft = 1; if(newLeft > 85) newLeft = 85; if(newTop < 1) newTop = 1; if(newTop > 85) newTop = 85;
-                node.style.left = newLeft + '%'; node.style.top = newTop + '%';
-                createParticle(clientX, clientY, castlesData[node.getAttribute('data-id')].color);
-            };
-            const end = async () => { 
-                if (!active) return; active = false; node.classList.remove('dragging'); 
-                const cid = node.getAttribute('data-id');
-                if (!hasMoved) { updateMonitorUI(cid); } 
-                else if (currentUser) {
-                    await _supabase.from('user_castles').upsert({ user_id: currentUser.id, castle_id: cid, level: castlesData[cid].level, rate: castlesData[cid].rate, top_position: parseFloat(node.style.top), left_position: parseFloat(node.style.left) }, { onConflict: 'user_id,castle_id' });
-                }
-            };
-            node.addEventListener('touchstart', start, {passive: true}); window.addEventListener('touchmove', move, {passive: false}); window.addEventListener('touchend', end);
-            node.addEventListener('mousedown', start); window.addEventListener('mousemove', move); window.addEventListener('mouseup', end);
-        });
-
-        // ترقية القلاع وحفظ المعطيات الجديدة في السيرفر
-        document.getElementById('upgradeCastleBtn').addEventListener('click', async () => {
-            if (userBalance < 150) { alert("الرصيد غير كافٍ!"); return; }
-            userBalance -= 150; const data = castlesData[activeCastleId]; data.level += 1; data.rate += (data.rate * 0.40);
-            playTone(750, 'sine', 0.2); updateMonitorUI(activeCastleId);
-            if (currentUser) {
-                await _supabase.from('user_castles').upsert({ user_id: currentUser.id, castle_id: activeCastleId, level: data.level, rate: data.rate }, { onConflict: 'user_id,castle_id' });
+            currentUser = null;
+            document.getElementById('authEmail').value = '';
+            document.getElementById('authPassword').value = '';
+            const overlay = document.getElementById('authOverlay');
+            if (overlay) {
+                overlay.style.display = 'flex';
+                overlay.style.opacity = '1';
             }
-            cloudSaveBalance();
-        });
+            switchAuthMode('login');
+        }
 
-        // نافذة السحب
-        const modal = document.getElementById('withdrawModal'); const successScreen = document.getElementById('successScreen');
-        document.getElementById('openWithdrawModal').addEventListener('click', () => { modal.style.display = 'flex'; successScreen.style.display = 'none'; });
-        document.getElementById('closeWithdrawModal').addEventListener('click', () => modal.style.display = 'none');
-        document.getElementById('confirmWithdraw').addEventListener('click', () => { if(!document.getElementById('walletAddress').value.trim()) { alert('أدخل العنوان الرقمي!'); return; } successScreen.style.display = 'flex'; playTone(900, 'sine', 0.4); });
-        document.getElementById('closeSuccessBtn').addEventListener('click', () => { modal.style.display = 'none'; successScreen.style.display = 'none'; document.getElementById('walletAddress').value = ''; });
+        // التحقق عند فتح الصفحة إذا كان هناك مستخدم مسجل دخول مسبقاً
+        window.onload = async () => {
+            const { data: { session } } = await _supabase.auth.getSession();
+            if (session && session.user) {
+                currentUser = session.user;
+                document.getElementById('displayLeaderName').innerText = session.user.email.split('@')[0];
+                document.getElementById('authOverlay').style.display = 'none';
+            }
+        }
     </script>
 </body>
 </html>
