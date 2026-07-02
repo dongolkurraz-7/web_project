@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>WebCraft AI - منظومة الممالك السحابية</title>
+    <title>منظومة القلاع والاستراتيجية السحابية</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         * {
@@ -117,8 +117,12 @@
             background: #4b5563;
             cursor: not-allowed;
         }
-        /* واجهة اللعبة الرئيسية */
-        .game-dashboard {
+
+        /* ========================================== */
+        /* واجهة صفحة القلاع والممالك الرئيسية */
+        /* ========================================== */
+        #castlesContainer {
+            display: none; /* مخفية حتى يتم تسجيل الدخول */
             padding: 20px;
             max-width: 1200px;
             margin: 0 auto;
@@ -146,6 +150,41 @@
             cursor: pointer;
             font-weight: bold;
         }
+        .castle-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 20px;
+            margin-top: 30px;
+        }
+        .castle-card {
+            background: #1f2937;
+            border: 2px solid #4b5563;
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+        }
+        .castle-card h3 {
+            color: #f59e0b;
+            margin-bottom: 10px;
+        }
+        .castle-card p {
+            color: #9ca3af;
+            margin-bottom: 15px;
+        }
+        .upgrade-btn {
+            background: #2563eb;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: bold;
+            width: 100%;
+        }
+        .upgrade-btn:hover {
+            background: #3b82f6;
+        }
     </style>
 </head>
 <body>
@@ -153,7 +192,7 @@
     <div id="authOverlay">
         <div class="auth-container">
             <div class="auth-title">
-                <span>👤🔒 بوابة الحسابات السحابية</span>
+                <span>🏰🔒 بوابة إمبراطورية القلاع</span>
             </div>
             
             <div class="tabs">
@@ -162,8 +201,8 @@
             </div>
 
             <div class="input-group" id="authLeaderNameField" style="display: none;">
-                <label>اسم القيادة / الإمبراطور</label>
-                <input type="text" id="authLeaderName" placeholder="أدخل اسم قيادتك الفاتحة...">
+                <label>اسم قائد القلعة</label>
+                <input type="text" id="authLeaderName" placeholder="أدخل اسم قيادتك...">
             </div>
 
             <div class="input-group">
@@ -180,21 +219,40 @@
         </div>
     </div>
 
-    <div class="game-dashboard">
+    /* واجهة صفحة القلاع الفعلية (تفتح بعد الدخول) */
+    <div id="castlesContainer">
         <div class="header-bar">
-            <div class="leader-info">🎴 المحرك متصل | مرحباً بالقائد: <span id="displayLeaderName">جاري التحميل...</span></div>
+            <div class="leader-info">🏰 المحرك متصل | القائد: <span id="displayLeaderName">...</span></div>
             <button class="logout-btn" onclick="handleLogout()">تسجيل خروج آمن</button>
         </div>
         
-        <div style="text-align: center; margin-top: 50px;">
-            <h1 style="color: #f59e0b; margin-bottom: 15px;">🌐 تم تفعيل سرفر WebCraft AI بنجاح</h1>
-            <p style="color: #9ca3af;">قاعدة البيانات متصلة الآن بالكامل ومحمية ضد أخطاء التسجيل التلقائي العشوائي.</p>
+        <div style="text-align: center; margin-top: 20px;">
+            <h1 style="color: #f59e0b; margin-bottom: 10px;">👑 ساحة القلاع والممالك الاستراتيجية</h1>
+            <p style="color: #9ca3af;">تم تفعيل وتأمين الاتصال السحابي، يمكنك الآن إدارة قلاعك العسكرية.</p>
+        </div>
+
+        <div class="castle-grid">
+            <div class="castle-card">
+                <h3>🏯 القلعة الرئيسية (الرتبة 1)</h3>
+                <p>المبنى الأساسي لإدارة شؤون المملكة وتوسيع النفوذ.</p>
+                <button class="upgrade-btn">تطوير القلعة</button>
+            </div>
+            <div class="castle-card">
+                <h3>⚔️ ثكنة الجنود (المستوى 1)</h3>
+                <p>تدريب المقاتلين وتجهيز الجيوش للدفاع والهجوم.</p>
+                <button class="upgrade-btn">تدريب وترقية</button>
+            </div>
+            <div class="castle-card">
+                <h3>🪙 مستودع الذهب (المستوى 1)</h3>
+                <p>تخزين وإنتاج سبائك الذهب لتمويل التطويرات السحابية.</p>
+                <button class="upgrade-btn">توسيع المخزن</button>
+            </div>
         </div>
     </div>
 
     <script>
         // =========================================================
-        // إعدادات خادم Supabase المركزي (تم دمج الرابط في سطر واحد مستقيم)
+        // إعدادات خادم Supabase المركزي
         // =========================================================
         const SUPABASE_URL = "https://pujxqcfzljzxiijgfbtw.supabase.co";
         const SUPABASE_ANON_KEY = "ضع_هنا_مفتاح_الأمان_الخاص_بمشروعك_ANON_KEY";
@@ -205,7 +263,7 @@
         let currentUser = null;
         let authMode = 'login'; 
 
-        // التبديل السلس بين تبويب "تسجيل دخول" و "حساب جديد"
+        // التبديل بين تبويب "تسجيل دخول" و "حساب جديد"
         function switchAuthMode(mode) {
             authMode = mode;
             const loginBtn = document.getElementById('loginModeBtn');
@@ -215,7 +273,6 @@
 
             if (mode === 'login') {
                 loginBtn.classList.add('active');
-                registerBtn.classList.remove('remove'); // تصحيح الكلاس
                 registerBtn.classList.remove('active');
                 leaderNameField.style.display = 'none';
                 executeBtn.innerText = "تشغيل محرك المنظومة";
@@ -227,7 +284,18 @@
             }
         }
 
-        // المعالجة البرمجية الجذرية للحسابات (الفصل الآمن لمنع تعليق الجلسة)
+        // دالة تشغيل وإظهار صفحة القلاع
+        function showCastlesPage(user, leaderName) {
+            currentUser = user;
+            // عرض اسم القائد في شريط اللعبة العلوي
+            document.getElementById('displayLeaderName').innerText = leaderName || user.email.split('@')[0];
+            
+            // إخفاء واجهة تسجيل الدخول المظلمة تماماً وإظهار القلاع
+            document.getElementById('authOverlay').style.display = 'none';
+            document.getElementById('castlesContainer').style.display = 'block';
+        }
+
+        // معالجة الحسابات والدخول المباشر لصفحة القلاع
         async function handleAuth() {
             const email = document.getElementById('authEmail').value.trim();
             const password = document.getElementById('authPassword').value.trim();
@@ -244,34 +312,30 @@
             executeBtn.disabled = true;
             
             if (authMode === 'register') {
-                // خطوة 1: تسجيل الحساب في Supabase Auth
+                // خطوة 1: إنشاء الحساب في نظام الحماية السحابي
                 const { data, error } = await _supabase.auth.signUp({ email, password });
                 
                 if (error) { 
-                    alert("خطأ في التسجيل الرقمي: " + error.message); 
+                    alert("خطأ في التسجيل: " + error.message); 
                     executeBtn.innerText = "تأسيس الإمبراطورية"; 
                     executeBtn.disabled = false;
                     return; 
                 }
                 
                 if (data.user) {
-                    // خطوة 2: تحديث اسم القائد في قاعدة البيانات السحابية لجدول البروفايل
+                    // خطوة 2: تحديث البروفايل باسم القائد
                     try {
-                        await _supabase.from('profiles').update({ leader_name: leaderName || 'قائد سحابي' }).eq('id', data.user.id);
+                        await _supabase.from('profiles').update({ leader_name: leaderName || 'قائد القلعة' }).eq('id', data.user.id);
                     } catch (pError) {
-                        console.log("تحديث بروفايل غير حرج", pError);
+                        console.log("تحديث جانبي", pError);
                     }
                     
-                    alert('تم إنشاء الحساب سحابياً بنجاح! تم تحويلك تلقائياً لتبويب تسجيل الدخول لتفعيل جلستك الآمنة دون أخطاء.');
-                    
-                    // خطوة 3: التحويل الجذري الآمن لتبويب تسجيل الدخول
-                    switchAuthMode('login');
-                    document.getElementById('authPassword').value = password; // الاحتفاظ بكلمة المرور لتسهيل المهمة
-                    executeBtn.innerText = "تشغيل محرك المنظومة";
-                    executeBtn.disabled = false;
+                    alert('تم إنشاء حسابك السحابي وتأمين القلعة بنجاح!');
+                    // خطوة 3: فتح صفحة القلاع فوراً ودون الحاجة لإعادة تسجيل الدخول
+                    showCastlesPage(data.user, leaderName);
                 }
             } else {
-                // عملية تسجيل الدخول المباشر والآمن
+                // عملية تسجيل الدخول العادية
                 const { data, error } = await _supabase.auth.signInWithPassword({ email, password });
                 
                 if (error) { 
@@ -282,45 +346,26 @@
                 }
                 
                 if (data.user) {
-                    currentUser = data.user;
-                    
-                    // مزامنة وعرض اسم القائد باللوحة
-                    document.getElementById('displayLeaderName').innerText = leaderName || email.split('@')[0];
-                    
-                    // إخفاء نافذة الحسابات ودخول اللعبة
-                    const overlay = document.getElementById('authOverlay');
-                    if (overlay) {
-                        overlay.style.opacity = '0';
-                        setTimeout(() => overlay.style.display = 'none', 500);
-                    }
-                    
-                    // إذا كان لديك دالة syncUserData() بالنسخة الأصلية استدعيها هنا:
-                    // if (typeof syncUserData === 'function') await syncUserData();
+                    // فتح صفحة القلاع مباشرة
+                    showCastlesPage(data.user, leaderName);
                 }
             }
         }
 
-        // دالة تسجيل الخروج الآمن وتصفير الجلسة
+        // دالة تسجيل الخروج الآمن
         async function handleLogout() {
             await _supabase.auth.signOut();
             currentUser = null;
-            document.getElementById('authEmail').value = '';
-            document.getElementById('authPassword').value = '';
-            const overlay = document.getElementById('authOverlay');
-            if (overlay) {
-                overlay.style.display = 'flex';
-                overlay.style.opacity = '1';
-            }
+            document.getElementById('castlesContainer').style.display = 'none';
+            document.getElementById('authOverlay').style.display = 'flex';
             switchAuthMode('login');
         }
 
-        // التحقق عند فتح الصفحة إذا كان هناك مستخدم مسجل دخول مسبقاً
+        // فحص الجلسة التلقائي عند فتح الصفحة
         window.onload = async () => {
             const { data: { session } } = await _supabase.auth.getSession();
             if (session && session.user) {
-                currentUser = session.user;
-                document.getElementById('displayLeaderName').innerText = session.user.email.split('@')[0];
-                document.getElementById('authOverlay').style.display = 'none';
+                showCastlesPage(session.user, null);
             }
         }
     </script>
