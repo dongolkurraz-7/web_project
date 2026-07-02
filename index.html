@@ -197,7 +197,7 @@
         // إعدادات خادم Supabase المركزي (تم دمج الرابط في سطر واحد مستقيم)
         // =========================================================
         const SUPABASE_URL = "https://pujxqcfzljzxiijgfbtw.supabase.co";
-        const SUPABASE_ANON_KEY = "sb_publishable_aa3vo_ehM9onqOmJuH0nVg_Wy_CK9xk";
+        const SUPABASE_ANON_KEY = "ضع_هنا_مفتاح_الأمان_الخاص_بمشروعك_ANON_KEY";
 
         // تهيئة عميل Supabase
         const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
@@ -281,11 +281,14 @@
                     return; 
                 }
                 
-                  if (data.user) {
+                if (data.user) {
                     currentUser = data.user;
                     
                     // مزامنة وعرض اسم القائد باللوحة
-                    document.getElementById('displayLeaderName').innerText = leaderName || document.getElementById('authOverlay');
+                    document.getElementById('displayLeaderName').innerText = leaderName || email.split('@')[0];
+                    
+                    // إخفاء نافذة الحسابات ودخول اللعبة
+                    const overlay = document.getElementById('authOverlay');
                     if (overlay) {
                         overlay.style.opacity = '0';
                         setTimeout(() => overlay.style.display = 'none', 500);
